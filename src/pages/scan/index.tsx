@@ -3,7 +3,7 @@ import { useScan } from '@/store/product'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { LeftOutlined } from '@ant-design/icons'
-import { message } from 'antd'
+import { Card, message } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
@@ -60,7 +60,11 @@ export const Page: React.FC = () => {
       messageApi.warning('条码重复!')
       return
     }
-    setDataSource([data, ...dataSource])
+    if (dayjs(data.date).isAfter(dayjs())) {
+      setDataSource([data])
+    } else {
+      setDataSource([data, ...dataSource])
+    }
     setInput('')
     saveScanData(product.productValue, [data, ...dataSource])
   }
@@ -70,7 +74,7 @@ export const Page: React.FC = () => {
   }
 
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center gap-y-12 px-8 pt-6">
+    <section className="flex min-h-screen flex-col items-center justify-center gap-y-12 bg-[#f5f5f5] px-8 pt-6">
       <div className="w-full">
         <Link to="/" className="text-primary">
           <LeftOutlined
@@ -87,11 +91,13 @@ export const Page: React.FC = () => {
         <Dashboard data={dataSource} />
       </div>
       <div className="w-full flex-auto">
-        <div className="mb-4 flex items-center justify-between">
-          <SearchForm value={input} onSubmit={onSearch} />
-          <ExtraAction data={dataSource} />
-        </div>
-        <ScanTable data={filterDataSource} />
+        <Card>
+          <div className="mb-4 flex items-center justify-between">
+            <SearchForm value={input} onSubmit={onSearch} />
+            <ExtraAction data={dataSource} />
+          </div>
+          <ScanTable data={filterDataSource} />
+        </Card>
       </div>
       {holder}
     </section>

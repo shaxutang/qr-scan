@@ -5,7 +5,7 @@ import {
   readScanData,
 } from '@/native'
 import { ExportOutlined } from '@ant-design/icons/lib'
-import { Button, Drawer, List, message } from 'antd'
+import { Button, Drawer, Empty, List, message } from 'antd'
 import { useState } from 'react'
 import { useScan } from '../../store/product'
 import { DataType } from '../../types'
@@ -67,17 +67,21 @@ const ExtraAction: React.FC<{ data: DataType[] }> = ({ data }) => {
         onClose={() => setOpen(false)}
       >
         <List className="space-y-4">
-          {exportList.map((item) => (
-            <List.Item
-              key={item.path}
-              className="flex items-center justify-between text-xl"
-            >
-              <span>{item.name}</span>
-              <Button size="small" onClick={() => onExport(item.path)}>
-                导出
-              </Button>
-            </List.Item>
-          ))}
+          {exportList.length ? (
+            exportList.map((item) => (
+              <List.Item
+                key={item.path}
+                className="flex items-center justify-between text-xl"
+              >
+                <span>{item.name}</span>
+                <Button size="small" onClick={() => onExport(item.path)}>
+                  导出
+                </Button>
+              </List.Item>
+            ))
+          ) : (
+            <Empty />
+          )}
         </List>
       </Drawer>
       {holder}

@@ -123,17 +123,21 @@ ipcMain.handle('electron:export:scan:excel', async (event, data, filePath) => {
  */
 ipcMain.handle('electron:get:export:list', async (event, productValue) => {
   const path = join(os.homedir(), `wk/qr-scan/product/${productValue}`)
-  return readdirSync(path)
-    .map((name) => join(path, name))
-    .filter((filePath) => statSync(filePath).isDirectory())
-    .filter((filePath) => {
-      const dirs = readdirSync(filePath)
-      return dirs.some((dir) => dir === 'data.json')
-    })
-    .map((filePath) => ({
-      name: basename(filePath),
-      path: filePath.replace(os.homedir(), ''),
-    }))
+  try {
+    return readdirSync(path)
+      .map((name) => join(path, name))
+      .filter((filePath) => statSync(filePath).isDirectory())
+      .filter((filePath) => {
+        const dirs = readdirSync(filePath)
+        return dirs.some((dir) => dir === 'data.json')
+      })
+      .map((filePath) => ({
+        name: basename(filePath),
+        path: filePath.replace(os.homedir(), ''),
+      }))
+  } catch (error) {
+    return []
+  }
 })
 
 /**
