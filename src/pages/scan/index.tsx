@@ -3,7 +3,7 @@ import { useScan } from '@/store/product'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { LeftOutlined } from '@ant-design/icons'
-import { Card, message } from 'antd'
+import { Card, notification } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
@@ -39,7 +39,7 @@ const generateData = (date: string) => {
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [input, setInput] = useState('')
-  const [messageApi, holder] = message.useMessage()
+  const [notificationApi, notificationHolder] = notification.useNotification()
   const { product } = useScan()
 
   const filterDataSource = useMemo<DataType[]>(() => {
@@ -54,10 +54,24 @@ export const Page: React.FC = () => {
     })
   }, [])
 
+  useEffect(() => {
+    typeof product?.scanDate === 'object' &&
+      readScanData(
+        product?.productValue,
+        product?.scanDate.format('YYYY-MM-DD'),
+      ).then((data) => {
+        setDataSource(data)
+      })
+  }, [product.scanDate])
+
   const onSubmit = (data: DataType) => {
     const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
     if (index !== -1) {
-      messageApi.warning('条码重复!')
+      notificationApi.info({
+        message: '友情提示',
+        description: '当前扫描的条码重复!',
+        placement: 'top',
+      })
       return
     }
     if (dayjs(data.date).isAfter(dayjs())) {
@@ -74,8 +88,8 @@ export const Page: React.FC = () => {
   }
 
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center gap-y-12 bg-[#f5f5f5] px-8 pt-6">
-      <div className="w-full">
+    <section className="min-h-screen bg-[#f5f5f5] px-8 pt-6">
+      <div className="mb-6 w-full">
         <Link to="/" className="text-primary">
           <LeftOutlined
             style={{
@@ -86,20 +100,25 @@ export const Page: React.FC = () => {
         </Link>
         <h2 className="text-center text-3xl">{product?.productName}</h2>
       </div>
-      <div className="w-full">
-        <ScanForm onSubmit={onSubmit} />
+      <div className="mb-4 w-full">
+        <div className="mb-4 flex items-center justify-between">
+          <ScanForm
+            disabled={!dayjs().isSame(product.scanDate, 'D')}
+            onSubmit={onSubmit}
+          />
+          <ExtraAction />
+        </div>
         <Dashboard data={dataSource} />
       </div>
       <div className="w-full flex-auto">
         <Card>
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4">
             <SearchForm value={input} onSubmit={onSearch} />
-            <ExtraAction data={dataSource} />
           </div>
           <ScanTable data={filterDataSource} />
         </Card>
       </div>
-      {holder}
+      {notificationHolder}
     </section>
   )
 }

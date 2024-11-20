@@ -1,3 +1,4 @@
+import dayjs from '@/utils/dayjs'
 import { PlusOutlined } from '@ant-design/icons'
 import { Button, Divider, Form, Input, Select, Space } from 'antd'
 import pinyin from 'pinyin'
@@ -6,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { readProducts, saveProducts } from '../native'
 import { useScan } from '../store/product'
 import { Product } from '../types'
+
 const Page: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [newProductName, setNewProductName] = useState<string>('')
@@ -39,6 +41,7 @@ const Page: React.FC = () => {
     setProduct({
       productName,
       productValue,
+      scanDate: dayjs(),
     })
     navigate('/scan')
   }
@@ -58,6 +61,8 @@ const Page: React.FC = () => {
           rules={[{ required: true, message: '请选择产品' }]}
         >
           <Select
+            defaultOpen
+            allowClear
             placeholder="请选择产品"
             options={products.map(({ productName, productValue }) => ({
               label: productName,

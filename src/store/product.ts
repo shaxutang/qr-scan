@@ -1,15 +1,20 @@
+import { Dayjs } from 'dayjs'
 import { useSyncExternalStore } from 'react'
 import { Product } from '../types'
 
+export interface StoreProduct extends Product {
+  scanDate: Dayjs
+}
+
 export interface ProductStoreType {
-  product: Product
-  setProduct: (value: Product) => void
+  product: StoreProduct
+  setProduct: (value: StoreProduct) => void
 }
 class ScanStore {
-  private product: Product = null!
+  private product: StoreProduct = null!
   private listeners: Set<() => void> = new Set()
 
-  public setProduct(product: Product) {
+  public setProduct(product: StoreProduct) {
     this.product = product
     sessionStorage.setItem('product', JSON.stringify(product))
     this.notify()
@@ -43,7 +48,7 @@ export const useScan = () => {
     scanStore.getSnapshot,
   )
 
-  const setProduct = (value: Product) => {
+  const setProduct = (value: StoreProduct) => {
     scanStore.setProduct(value)
   }
 
