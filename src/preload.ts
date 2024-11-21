@@ -7,7 +7,7 @@ const readFile = async (filePath: string) => {
   return ipcRenderer.invoke('electron:read:file', filePath)
 }
 
-const exportExcel = async (
+const exportScanDataExcel = async (
   data: string,
   filePath: string,
 ): Promise<{
@@ -26,7 +26,7 @@ const openExportExplorer = (product: string, date: string) => {
 contextBridge.exposeInMainWorld('electron', {
   saveFile,
   readFile,
-  exportExcel,
+  exportScanDataExcel,
   getExoportList,
   openExportExplorer,
 })

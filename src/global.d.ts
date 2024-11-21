@@ -5,7 +5,7 @@ declare global {
     electron: {
       saveFile: (filePath: string, data: string) => void
       readFile: (filePath: string) => Promise<string>
-      exportExcel: (
+      exportScanDataExcel: (
         data: DataType[],
         filePath: string,
       ) => Promise<{ success: boolean; message: string; path: string }>

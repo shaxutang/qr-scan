@@ -37,7 +37,7 @@ export const exportScanDataExcel = (
   date: string,
   data: DataType[],
 ) => {
-  return window.electron.exportExcel(
+  return window.electron.exportScanDataExcel(
     data,
     `wk/qr-scan/downloads/${name}/${date}.xlsx`,
   )
