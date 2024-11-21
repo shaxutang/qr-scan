@@ -138,6 +138,8 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
   const icon = isGrowth ? <ArrowUpOutlined /> : <ArrowDownOutlined />
   const valueStyle = {
     color: isGrowth ? '#3f8600' : '#cf1322',
+    fontWeight: 800,
+    fontSize: 32,
   }
 
   return (
@@ -149,7 +151,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
               title="当前时间段产能"
               value={currentHourCapacity}
               precision={0}
-              valueStyle={{ color: '#000' }}
+              valueStyle={{ color: '#000', fontWeight: 800, fontSize: 32 }}
               suffix="pcs"
             />
           </Card>
@@ -159,6 +161,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
             <Statistic
               title="总产能"
               value={totalCapacity}
+              valueStyle={{ color: '#000', fontWeight: 800, fontSize: 32 }}
               precision={0}
               suffix="pcs"
             />
@@ -170,7 +173,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
               title="生产速度"
               value={productionSpeed.toFixed(2)}
               precision={2}
-              valueStyle={{ color: '#1677ff' }}
+              valueStyle={{ color: '#1677ff', fontWeight: 800, fontSize: 32 }}
               suffix="pcs /小时"
             />
           </Card>

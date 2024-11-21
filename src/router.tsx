@@ -1,6 +1,6 @@
-import { createHashRouter } from 'react-router-dom';
-import Scan from './pages/scan';
-import Home from './pages/home';
+import { createHashRouter } from 'react-router-dom'
+import Home from './pages/home'
+import Scan from './pages/scan'
 
 export const router = createHashRouter(
   [
@@ -12,10 +12,14 @@ export const router = createHashRouter(
       path: '/scan',
       element: <Scan />,
     },
+    {
+      path: '/*',
+      element: <Home />,
+    },
   ],
   {
     future: {
       v7_partialHydration: true,
     },
-  }
-);
+  },
+)
