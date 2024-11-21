@@ -1,24 +1,24 @@
-import { Button, Input, Space, message } from 'antd';
-import { ExportOutlined } from '@ant-design/icons/lib';
-import { useEffect, useState } from 'react';
+import { Button, Input, Space } from 'antd'
+import { useEffect, useState } from 'react'
 
 const QuickAction: React.FC<{
-  value: string;
-  onSubmit: (value: string) => void;
-}> = ({ value, onSubmit }) => {
-  const [innerValue, setInnerValue] = useState(value ?? '');
+  value: string
+  onSubmit: (value: string) => void
+  onReset: () => void
+}> = ({ value, onSubmit, onReset }) => {
+  const [innerValue, setInnerValue] = useState(value ?? '')
 
   useEffect(() => {
-    setInnerValue(value);
-  }, [value]);
+    setInnerValue(value)
+  }, [value])
 
   // 按回车提交
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-      onSubmit(innerValue);
+      e.preventDefault()
+      onSubmit(innerValue)
     }
-  };
+  }
 
   return (
     <Space>
@@ -32,8 +32,9 @@ const QuickAction: React.FC<{
       <Button type="primary" onClick={() => onSubmit(innerValue)}>
         快速搜索
       </Button>
+      <Button onClick={onReset}>重置</Button>
     </Space>
-  );
-};
+  )
+}
 
-export default QuickAction;
+export default QuickAction

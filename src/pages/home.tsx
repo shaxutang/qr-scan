@@ -41,7 +41,7 @@ const Page: React.FC = () => {
     setProduct({
       productName,
       productValue,
-      scanDate: dayjs(),
+      scanDate: dayjs().toDate().getTime(),
     })
     navigate('/scan')
   }

@@ -9,7 +9,7 @@ import {
   Switch,
   Tooltip,
 } from 'antd'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useScan } from '../../store/product'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
@@ -24,6 +24,15 @@ const ScanForm: React.FC<{
   const [form] = Form.useForm<FormInstance>()
   const { product } = useScan()
   const inputRef = useRef<InputRef>(null!)
+
+  useEffect(() => {
+    if (
+      form.getFieldValue('autoFocus') &&
+      dayjs().isSame(product.scanDate, 'D')
+    ) {
+      inputRef.current.focus()
+    }
+  }, [product.scanDate])
 
   const onChange = (qrcode: string) => {
     if (qrcode.length === 18) {
@@ -103,7 +112,7 @@ const ScanForm: React.FC<{
         className="[&_.ant-form-item]:!mb-0"
       >
         <Row gutter={16}>
-          <Col span={18}>
+          <Col span={8}>
             <Form.Item label="扫描二维码" name="qrcode">
               <Input
                 ref={inputRef}
@@ -121,7 +130,7 @@ const ScanForm: React.FC<{
               />
             </Form.Item>
           </Col>
-          <Col span={6}>
+          <Col span={8}>
             <Form.Item
               label={
                 <span>

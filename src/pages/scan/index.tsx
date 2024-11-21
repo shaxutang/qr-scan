@@ -3,14 +3,13 @@ import { useScan } from '@/store/product'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { LeftOutlined } from '@ant-design/icons'
-import { Card, notification } from 'antd'
-import { useEffect, useMemo, useState } from 'react'
+import { notification } from 'antd'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
 import ScanForm from './ScanForm'
 import ScanTable from './ScanTable'
-import SearchForm from './SearchForm'
 
 const generateData = (date: string) => {
   const data: { name: string; qrcode: string; date: string }[] = []
@@ -38,15 +37,8 @@ const generateData = (date: string) => {
 
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
-  const [input, setInput] = useState('')
   const [notificationApi, notificationHolder] = notification.useNotification()
   const { product } = useScan()
-
-  const filterDataSource = useMemo<DataType[]>(() => {
-    return dataSource.filter(
-      (data) => data.qrcode.toLowerCase().indexOf(input?.toLowerCase()) !== -1,
-    )
-  }, [dataSource, input])
 
   useEffect(() => {
     readScanData(product?.productValue).then((data) => {
@@ -55,10 +47,10 @@ export const Page: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    typeof product?.scanDate === 'object' &&
+    product?.scanDate &&
       readScanData(
         product?.productValue,
-        product?.scanDate.format('YYYY-MM-DD'),
+        dayjs(product?.scanDate).format('YYYY-MM-DD'),
       ).then((data) => {
         setDataSource(data)
       })
@@ -79,12 +71,7 @@ export const Page: React.FC = () => {
     } else {
       setDataSource([data, ...dataSource])
     }
-    setInput('')
     saveScanData(product.productValue, [data, ...dataSource])
-  }
-
-  const onSearch = (qrcode: string) => {
-    setInput(qrcode)
   }
 
   return (
@@ -98,25 +85,31 @@ export const Page: React.FC = () => {
           />
           <span className="ml-2">重新选择产品</span>
         </Link>
-        <h2 className="text-center text-3xl">{product?.productName}</h2>
+        <h2 className="text-center text-3xl">
+          <span>{product?.productName}</span>
+          {product?.scanDate ? (
+            <span className="ml-2">
+              [{dayjs(product?.scanDate).format('YYYY-MM-DD')}]
+            </span>
+          ) : (
+            ''
+          )}
+        </h2>
       </div>
       <div className="mb-4 w-full">
         <div className="mb-4 flex items-center justify-between">
-          <ScanForm
-            disabled={!dayjs().isSame(product.scanDate, 'D')}
-            onSubmit={onSubmit}
-          />
+          <div className="flex-auto">
+            <ScanForm
+              disabled={!dayjs().isSame(product.scanDate, 'D')}
+              onSubmit={onSubmit}
+            />
+          </div>
           <ExtraAction />
         </div>
         <Dashboard data={dataSource} />
       </div>
       <div className="w-full flex-auto">
-        <Card>
-          <div className="mb-4">
-            <SearchForm value={input} onSubmit={onSearch} />
-          </div>
-          <ScanTable data={filterDataSource} />
-        </Card>
+        <ScanTable data={dataSource} />
       </div>
       {notificationHolder}
     </section>

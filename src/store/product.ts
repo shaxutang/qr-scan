@@ -1,9 +1,8 @@
-import { Dayjs } from 'dayjs'
 import { useSyncExternalStore } from 'react'
 import { Product } from '../types'
 
 export interface StoreProduct extends Product {
-  scanDate: Dayjs
+  scanDate: number
 }
 
 export interface ProductStoreType {
