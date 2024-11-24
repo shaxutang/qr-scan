@@ -1,6 +1,6 @@
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons'
 import { Line } from '@ant-design/plots'
-import { Card, Col, Row, Statistic } from 'antd'
+import { Card, Col, Empty, Row, Statistic } from 'antd'
 import React from 'react'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
@@ -201,7 +201,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
         }}
         className="mt-4"
       >
-        <Line {...config} />
+        {data.length ? <Line {...config} /> : <Empty />}
       </Card>
     </>
   )

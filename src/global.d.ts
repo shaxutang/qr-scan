@@ -16,6 +16,10 @@ declare global {
         }[]
       >
       openExportExplorer: (productName: string, date: string) => void
+      renameFolder: (
+        oldPath: string,
+        newPath: string,
+      ) => Promise<{ success: boolean; message: string; path: string }>
     }
   }
 }

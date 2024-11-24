@@ -66,7 +66,7 @@ export const Page: React.FC = () => {
       })
       return
     }
-    if (dayjs(data.date).isAfter(dayjs())) {
+    if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
       setDataSource([data])
     } else {
       setDataSource([data, ...dataSource])

@@ -50,10 +50,10 @@ const ScanForm: React.FC<{
       inputRef.current.focus()
       api.warning({
         key: 1,
-        message: '已自动聚焦,请继续扫码',
+        message: '操作提示',
         description: (
           <>
-            如果需要进行其他操作，请先
+            为防止漏扫码，已自动聚焦，请继续扫码，如果需要进行其他操作，请先
             <button className="text-primary" onClick={onCancelAutoFocus}>
               取消自动聚焦
             </button>

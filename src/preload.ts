@@ -23,10 +23,15 @@ const openExportExplorer = (product: string, date: string) => {
   ipcRenderer.invoke('electron:open:export:explorer', product, date)
 }
 
+const renameFolder = async (oldPath: string, newPath: string) => {
+  return ipcRenderer.invoke('electron:rename:folder', oldPath, newPath)
+}
+
 contextBridge.exposeInMainWorld('electron', {
   saveFile,
   readFile,
   exportScanDataExcel,
   getExoportList,
   openExportExplorer,
+  renameFolder,
 })

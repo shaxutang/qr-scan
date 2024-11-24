@@ -1,10 +1,11 @@
 import dayjs from '@/utils/dayjs'
-import { PlusOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Divider, Form, Input, Select, Space } from 'antd'
 import pinyin from 'pinyin'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { readProducts, saveProducts } from '../native'
+import { Link } from 'react-router-dom'
+import { readProducts, saveProducts, saveScanData } from '../native'
 import { useScan } from '../store/product'
 import { Product } from '../types'
 
@@ -30,9 +31,10 @@ const Page: React.FC = () => {
         .reduce((s1, s2) => [...s1, ...s2])
         .join('_'),
     }
-    saveProducts([...products, product])
     setProducts([...products, product])
     setNewProductName('')
+    saveProducts([...products, product])
+    saveScanData(product.productValue, [])
   }
   const onFinish = ({ productValue }: { productValue: string }) => {
     const productName = products.find(
@@ -52,7 +54,7 @@ const Page: React.FC = () => {
         productValue: string
       }>
         layout="vertical"
-        className="w-96"
+        className="w-[420px]"
         onFinish={onFinish}
       >
         <Form.Item
@@ -63,6 +65,7 @@ const Page: React.FC = () => {
           <Select
             defaultOpen
             allowClear
+            showSearch
             placeholder="请选择产品"
             options={products.map(({ productName, productValue }) => ({
               label: productName,
@@ -80,9 +83,16 @@ const Page: React.FC = () => {
                     value={newProductName}
                     onChange={(e) => setNewProductName(e.target.value)}
                   />
-                  <Button type="text" icon={<PlusOutlined />} onClick={addItem}>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={addItem}
+                  >
                     新增产品
                   </Button>
+                  <Link to="/products">
+                    <Button icon={<AppstoreOutlined />}>管理产品</Button>
+                  </Link>
                 </Space>
               </>
             )}

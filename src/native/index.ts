@@ -50,3 +50,7 @@ export const getExoportList = async (productValue: string) => {
 export const openExportExplorer = (productName: string, date: string) => {
   window.electron.openExportExplorer(productName, date)
 }
+
+export const renameFolder = (oldPath: string, newPath: string) => {
+  return window.electron.renameFolder(oldPath, newPath)
+}
