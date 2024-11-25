@@ -24,7 +24,7 @@ const openExportExplorer = (product: string, date: string) => {
 }
 
 const renameFolder = async (oldPath: string, newPath: string) => {
-  return ipcRenderer.invoke('electron:rename:folder', oldPath, newPath)
+  return ipcRenderer.invoke('electron:rename:product:folder', oldPath, newPath)
 }
 
 contextBridge.exposeInMainWorld('electron', {

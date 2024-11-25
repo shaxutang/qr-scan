@@ -105,10 +105,7 @@ const Products: React.FC = () => {
     )
     setProducts(arr)
     saveProducts(arr)
-    renameFolder(
-      `wk/qr-scan/product/${oldProduct.productValue}`,
-      `wk/qr-scan/product/${newProduct.productValue}`,
-    )
+    renameFolder(oldProduct.productValue, newProduct.productValue)
     api.success('修改成功')
   }
 

@@ -193,29 +193,32 @@ ipcMain.handle(
 /**
  * 修改文件夹名称
  */
-ipcMain.handle('electron:rename:folder', async (event, oldPath, newPath) => {
-  const baseOldPath = join(BASE_DIR, oldPath)
-  const baseNewPath = join(BASE_DIR, newPath)
+ipcMain.handle(
+  'electron:rename:product:folder',
+  async (event, oldPath, newPath) => {
+    const baseOldPath = join(BASE_DIR, 'wk/qr-scan/product', oldPath)
+    const baseNewPath = join(BASE_DIR, 'wk/qr-scan/product', newPath)
 
-  try {
-    // 检查旧路径是否存在
-    if (!existsSync(baseOldPath)) {
-      console.error('旧文件夹不存在')
-      return { success: false, message: '旧文件夹不存在' }
+    try {
+      // 检查旧路径是否存在
+      if (!existsSync(baseOldPath)) {
+        console.error('旧文件夹不存在')
+        return { success: false, message: '旧文件夹不存在' }
+      }
+
+      // 检查新路径是否已存在
+      if (existsSync(baseNewPath)) {
+        console.error('新文件夹已存在')
+        return { success: false, message: '新文件夹已存在' }
+      }
+
+      // 重命名文件夹
+      renameSync(baseOldPath, baseNewPath)
+
+      return { success: true, message: '文件夹重命名成功' }
+    } catch (error) {
+      console.error('Error renaming folder:', error)
+      return { success: false, message: '文件夹重命名失败: ' + error.message }
     }
-
-    // 检查新路径是否已存在
-    if (existsSync(baseNewPath)) {
-      console.error('新文件夹已存在')
-      return { success: false, message: '新文件夹已存在' }
-    }
-
-    // 重命名文件夹
-    renameSync(baseOldPath, baseNewPath)
-
-    return { success: true, message: '文件夹重命名成功' }
-  } catch (error) {
-    console.error('Error renaming folder:', error)
-    return { success: false, message: '文件夹重命名失败: ' + error.message }
-  }
-})
+  },
+)
