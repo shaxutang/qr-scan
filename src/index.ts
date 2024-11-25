@@ -26,6 +26,12 @@ if (require('electron-squirrel-startup')) {
 
 const init = () => {
   const path = join(BASE_DIR, 'wk/qr-scan/product/products.json')
+
+  const pathDir = dirname(path)
+  if (!existsSync(pathDir)) {
+    mkdirSync(pathDir, { recursive: true })
+  }
+
   const isExists = existsSync(path)
   if (!isExists) {
     writeFileSync(
@@ -194,12 +200,14 @@ ipcMain.handle('electron:rename:folder', async (event, oldPath, newPath) => {
   try {
     // 检查旧路径是否存在
     if (!existsSync(baseOldPath)) {
-      throw new Error('旧文件夹不存在')
+      console.error('旧文件夹不存在')
+      return { success: false, message: '旧文件夹不存在' }
     }
 
     // 检查新路径是否已存在
     if (existsSync(baseNewPath)) {
-      throw new Error('新文件夹已存在')
+      console.error('新文件夹已存在')
+      return { success: false, message: '新文件夹已存在' }
     }
 
     // 重命名文件夹

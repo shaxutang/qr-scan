@@ -1,6 +1,6 @@
 {
   "name": "qr-scan",
-  "productName": "qr-scan",
+  "productName": "IE-扫码",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".webpack/main",

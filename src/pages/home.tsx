@@ -1,6 +1,6 @@
 import dayjs from '@/utils/dayjs'
 import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Divider, Form, Input, Select, Space } from 'antd'
+import { Button, Divider, Form, Input, message, Select, Space } from 'antd'
 import pinyin from 'pinyin'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -12,6 +12,7 @@ import { Product } from '../types'
 const Page: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [newProductName, setNewProductName] = useState<string>('')
+  const [api, contextHolder] = message.useMessage()
   const { setProduct } = useScan()
   const navigate = useNavigate()
 
@@ -25,6 +26,17 @@ const Page: React.FC = () => {
     e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>,
   ) => {
     e.preventDefault()
+    if (!newProductName) {
+      api.warning('产品名称不能为空')
+      return
+    }
+    const isExists = products.some(
+      (item) => item.productName === newProductName,
+    )
+    if (isExists) {
+      api.warning('产品已存在')
+      return
+    }
     const product: Product = {
       productName: newProductName,
       productValue: pinyin(newProductName)
@@ -104,6 +116,7 @@ const Page: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+      {contextHolder}
     </section>
   )
 }

@@ -4,7 +4,6 @@ import { plugins } from './webpack.plugins'
 import { rules } from './webpack.rules'
 
 export const mainConfig: Configuration = {
-  target: 'electron-renderer', // 适用于渲染进程
   /**
    * This is the main entry point for your application, it's the first file
    * that runs in the main process.

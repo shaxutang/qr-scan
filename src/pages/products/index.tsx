@@ -30,15 +30,20 @@ const EditModalButton: React.FC<{
   }
 
   const handleOk = () => {
-    const { productName } = form.getFieldsValue()
-    const productValue = pinyin(productName)
-      .reduce((s1, s2) => [...s1, ...s2])
-      .join('_')
-    onOk?.({
-      productName,
-      productValue,
-    })
-    setIsModalOpen(false)
+    form
+      .validateFields()
+      .then(() => {
+        const { productName } = form.getFieldsValue()
+        const productValue = pinyin(productName)
+          .reduce((s1, s2) => [...s1, ...s2])
+          .join('_')
+        onOk?.({
+          productName,
+          productValue,
+        })
+        setIsModalOpen(false)
+      })
+      .catch(() => {})
   }
 
   const handleCancel = () => {
@@ -52,12 +57,30 @@ const EditModalButton: React.FC<{
       </Button>
       <Modal
         title="编辑"
+        forceRender
+        destroyOnClose
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
       >
         <Form form={form}>
-          <Form.Item name="productName" label="产品名称">
+          <Form.Item
+            name="productName"
+            label="产品名称"
+            rules={[
+              { required: true, message: '请输入产品名称' },
+              {
+                required: true,
+                validator: (_, value) => {
+                  if (value !== initValue.productName) {
+                    return Promise.resolve()
+                  } else {
+                    return Promise.reject('产品名称不能和原本的名称一致')
+                  }
+                },
+              },
+            ]}
+          >
             <Input placeholder="请输入产品名称" />
           </Form.Item>
         </Form>
@@ -70,6 +93,13 @@ const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [api, contextHolder] = message.useMessage()
   const onOk = (oldProduct: Product, newProduct: Product) => {
+    const isExists = products.some(
+      (p) => p.productName === newProduct.productName,
+    )
+    if (isExists) {
+      api.warning('产品名称重复')
+      return
+    }
     const arr = products.map((p) =>
       p.productValue === oldProduct.productValue ? newProduct : p,
     )
@@ -114,7 +144,7 @@ const Products: React.FC = () => {
   return (
     <section className="flex h-screen flex-col items-center justify-center gap-y-4 bg-[#f5f5f5]">
       <Card className="w-[50vw]">
-        <Table columns={columns} dataSource={products} />
+        <Table columns={columns} dataSource={products} rowKey="productValue" />
       </Card>
       <Link to="/">
         <Button type="primary">返回主页</Button>
