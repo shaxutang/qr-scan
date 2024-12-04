@@ -9,6 +9,7 @@ export interface ProductStoreType {
   product: StoreProduct
   setProduct: (value: StoreProduct) => void
 }
+
 class ScanStore {
   private product: StoreProduct = null!
   private listeners: Set<() => void> = new Set()
