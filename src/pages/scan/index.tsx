@@ -4,6 +4,7 @@ import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { LeftOutlined } from '@ant-design/icons'
 import { notification } from 'antd'
+import { debounce } from 'lodash'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
@@ -56,14 +57,18 @@ export const Page: React.FC = () => {
       })
   }, [product.scanDate])
 
+  const debounceNotification = debounce((message: string) => {
+    notificationApi.info({
+      message: '友情提示',
+      description: message,
+      placement: 'top',
+    })
+  }, 500)
+
   const onSubmit = (data: DataType) => {
     const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
     if (index !== -1) {
-      notificationApi.info({
-        message: '友情提示',
-        description: '当前扫描的条码重复!',
-        placement: 'top',
-      })
+      debounceNotification('当前扫描的条码重复!')
       return
     }
     if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
