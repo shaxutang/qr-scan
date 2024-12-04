@@ -1,5 +1,5 @@
 import type { TableProps } from 'antd'
-import { Card, Table, Tag } from 'antd'
+import { Button, Card, Popconfirm, Switch, Table, Tag } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
@@ -33,8 +33,10 @@ const columns: TableProps<DataType>['columns'] = [
 
 const ScanTable: React.FC<{
   data: DataType[]
-}> = ({ data }) => {
+  onDelete?: (qrcode: string) => void
+}> = ({ data, onDelete }) => {
   const [input, setInput] = useState('')
+  const [advanced, setAdvanced] = useState(false)
 
   const filterDataSource = useMemo<DataType[]>(() => {
     return data.filter(
@@ -42,6 +44,30 @@ const ScanTable: React.FC<{
     )
   }, [data, input])
 
+  const getColumns = () => {
+    return advanced
+      ? [
+          ...columns,
+          {
+            title: '操作',
+            key: 'action',
+            render: (_: any, record: DataType) => (
+              <>
+                <Popconfirm
+                  title="确定要删除吗？"
+                  description="删除之后不可恢复！"
+                  onConfirm={() => onDelete?.(record.qrcode)}
+                >
+                  <Button type="primary" size="small" danger>
+                    删除
+                  </Button>
+                </Popconfirm>
+              </>
+            ),
+          },
+        ]
+      : columns
+  }
   const onSearch = (qrcode: string) => {
     setInput(qrcode)
   }
@@ -52,11 +78,15 @@ const ScanTable: React.FC<{
 
   return (
     <Card>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <SearchForm value={input} onSubmit={onSearch} onReset={onReset} />
+        <div className="flex items-center gap-x-2">
+          <div>高级操作:</div>
+          <Switch value={advanced} onChange={setAdvanced} />
+        </div>
       </div>
       <Table<DataType>
-        columns={columns}
+        columns={getColumns()}
         dataSource={filterDataSource}
         rowKey="qrcode"
         scroll={{ y: 500 }}

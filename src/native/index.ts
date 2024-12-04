@@ -14,11 +14,13 @@ export const readProducts = async () => {
   return content ? JSON.parse(content) : []
 }
 
-export const saveScanData = (productName: string, data: DataType[]) => {
+export const saveScanData = (
+  productName: string,
+  data: DataType[],
+  date?: string,
+) => {
   window.electron.saveFile(
-    `wk/qr-scan/product/${productName}/${dayjs().format(
-      'YYYY-MM-DD',
-    )}/data.json`,
+    `wk/qr-scan/product/${productName}/${date ?? dayjs().format('YYYY-MM-DD')}/data.json`,
     JSON.stringify(data),
   )
 }

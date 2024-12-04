@@ -79,6 +79,14 @@ export const Page: React.FC = () => {
     saveScanData(product.productValue, [data, ...dataSource])
   }
 
+  const handleDelete = (qrcode: string) => {
+    const data = dataSource.find((item) => item.qrcode === qrcode)
+    const date = dayjs(data.date).format('YYYY-MM-DD')
+    const finalData = dataSource.filter((item) => item.qrcode !== qrcode)
+    setDataSource(finalData)
+    saveScanData(product.productValue, finalData, date)
+  }
+
   return (
     <section className="min-h-screen bg-[#f5f5f5] px-8 pt-6">
       <div className="mb-6 w-full">
@@ -114,7 +122,7 @@ export const Page: React.FC = () => {
         <Dashboard data={dataSource} />
       </div>
       <div className="w-full flex-auto">
-        <ScanTable data={dataSource} />
+        <ScanTable data={dataSource} onDelete={handleDelete} />
       </div>
       {notificationHolder}
     </section>
