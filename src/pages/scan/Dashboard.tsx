@@ -151,7 +151,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
               title="当前时间段产能"
               value={currentHourCapacity}
               precision={0}
-              valueStyle={{ color: '#000', fontWeight: 800, fontSize: 32 }}
+              valueStyle={{ fontWeight: 800, fontSize: 32 }}
               suffix="pcs"
             />
           </Card>
@@ -161,7 +161,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
             <Statistic
               title="总产能"
               value={totalCapacity}
-              valueStyle={{ color: '#000', fontWeight: 800, fontSize: 32 }}
+              valueStyle={{ fontWeight: 800, fontSize: 32 }}
               precision={0}
               suffix="pcs"
             />

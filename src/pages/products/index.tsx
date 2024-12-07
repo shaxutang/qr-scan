@@ -7,6 +7,8 @@ import {
   Input,
   message,
   Modal,
+  Popconfirm,
+  Space,
   Table,
   TableProps,
 } from 'antd'
@@ -109,6 +111,14 @@ const Products: React.FC = () => {
     api.success('修改成功')
   }
 
+  const onDelete = (product: Product) => {
+    const finalProducts = products.filter(
+      (p) => p.productValue !== product.productValue,
+    )
+    setProducts(finalProducts)
+    saveProducts(finalProducts)
+  }
+
   const columns: TableProps<Product>['columns'] = [
     {
       title: '序号',
@@ -125,10 +135,23 @@ const Products: React.FC = () => {
       title: '操作',
       key: 'action',
       render: (_, product) => (
-        <EditModalButton
-          initValue={product}
-          onOk={(newProduct) => onOk(product, newProduct)}
-        />
+        <Space>
+          <EditModalButton
+            initValue={product}
+            onOk={(newProduct) => onOk(product, newProduct)}
+          />
+          <Popconfirm
+            title="确定要删除吗？"
+            description="删除后数据会保留，但不会再显示在列表中"
+            onConfirm={() => onDelete(product)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="primary" danger size="small">
+              删除
+            </Button>
+          </Popconfirm>
+        </Space>
       ),
     },
   ]
@@ -139,7 +162,7 @@ const Products: React.FC = () => {
     })
   }, [])
   return (
-    <section className="flex h-screen flex-col items-center justify-center gap-y-4 bg-[#f5f5f5]">
+    <section className="flex h-screen flex-col items-center justify-center gap-y-4 overflow-x-hidden">
       <Card className="w-[50vw]">
         <Table columns={columns} dataSource={products} rowKey="productValue" />
       </Card>

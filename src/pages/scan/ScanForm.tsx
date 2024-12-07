@@ -34,11 +34,11 @@ const ScanForm: React.FC<{
     }
   }, [product.scanDate])
 
-  const onChange = (qrcode: string) => {
-    if (qrcode.length === 18) {
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
       onSubmit({
         date: dayjs().toDate().getTime(),
-        qrcode,
+        qrcode: (e.currentTarget as HTMLInputElement).value,
         ...product,
       })
       form.setFieldValue('qrcode', '')
@@ -117,16 +117,11 @@ const ScanForm: React.FC<{
               <Input
                 ref={inputRef}
                 placeholder="请扫描二维码"
-                prefix={
-                  <ScanOutlined
-                    style={{ fontSize: 24, color: 'rgba(0,0,0,.6)' }}
-                  />
-                }
+                prefix={<ScanOutlined style={{ fontSize: 24 }} />}
                 size="large"
                 autoFocus
-                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={(e) => onKeyDown(e)}
                 onBlur={onBlur}
-                maxLength={18}
               />
             </Form.Item>
           </Col>

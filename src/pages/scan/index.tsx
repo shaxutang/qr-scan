@@ -1,9 +1,10 @@
 import { readScanData, saveScanData } from '@/native'
+import { useDark } from '@/store/dark'
 import { useScan } from '@/store/product'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
-import { LeftOutlined } from '@ant-design/icons'
-import { notification } from 'antd'
+import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
+import { Button, notification } from 'antd'
 import { debounce } from 'lodash'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -40,6 +41,7 @@ export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [notificationApi, notificationHolder] = notification.useNotification()
   const { product } = useScan()
+  const { isDark, toggleDarkMode } = useDark()
 
   useEffect(() => {
     readScanData(product?.productValue).then((data) => {
@@ -88,17 +90,25 @@ export const Page: React.FC = () => {
   }
 
   return (
-    <section className="min-h-screen bg-[#f5f5f5] px-8 pt-6">
+    <section className="min-h-screen px-8 pt-6">
       <div className="mb-6 w-full">
-        <Link to="/" className="text-primary">
-          <LeftOutlined
-            style={{
-              fontSize: 16,
-            }}
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-primary">
+            <LeftOutlined
+              style={{
+                fontSize: 16,
+              }}
+            />
+            <span className="ml-2">重新选择产品</span>
+          </Link>
+          <Button
+            type="text"
+            size="large"
+            icon={isDark ? <MoonOutlined /> : <SunOutlined />}
+            onClick={toggleDarkMode}
           />
-          <span className="ml-2">重新选择产品</span>
-        </Link>
-        <h2 className="text-center text-3xl">
+        </div>
+        <h2 className="text-center text-3xl dark:text-white">
           <span>{product?.productName}</span>
           {product?.scanDate ? (
             <span className="ml-2">
