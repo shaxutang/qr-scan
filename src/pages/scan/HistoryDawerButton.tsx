@@ -106,7 +106,9 @@ const HistoryDawerButton: React.FC = () => {
                 <span>
                   <span>{item.name}</span>
                   {dayjs().isSame(item.date, 'D') && (
-                    <span className="ml-1 text-sm text-black/40">(今天)</span>
+                    <span className="ml-1 text-sm text-black/40 dark:text-white/40">
+                      (今天)
+                    </span>
                   )}
                 </span>
                 <Space>

@@ -5,37 +5,12 @@ import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, notification } from 'antd'
-import { debounce } from 'lodash'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
 import ScanForm from './ScanForm'
 import ScanTable from './ScanTable'
-
-const generateData = (date: string) => {
-  const data: { name: string; qrcode: string; date: string }[] = []
-
-  for (let hour = 23; hour >= 0; hour--) {
-    const dataCount = Math.floor(Math.random() * (20 - 5 + 1)) + 5
-
-    for (let i = 0; i < dataCount; i++) {
-      const formattedDate = dayjs(date)
-        .hour(hour)
-        .minute(i * (60 / dataCount))
-        .second(0)
-        .format('YYYY/MM/DD HH:mm:ss')
-
-      data.push({
-        name: `Product ${String.fromCharCode(65 + (i % 10))}`,
-        qrcode: `${String.fromCharCode(65 + (i % 10))}${hour}${i}`,
-        date: formattedDate,
-      })
-    }
-  }
-
-  return data.sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())
-}
 
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
@@ -59,18 +34,15 @@ export const Page: React.FC = () => {
       })
   }, [product.scanDate])
 
-  const debounceNotification = debounce((message: string) => {
-    notificationApi.info({
-      message: '友情提示',
-      description: message,
-      placement: 'top',
-    })
-  }, 500)
-
   const onSubmit = (data: DataType) => {
     const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
     if (index !== -1) {
-      debounceNotification('当前扫描的条码重复!')
+      notificationApi.info({
+        key: 'duplicate',
+        message: '友情提示',
+        description: '当前扫描的条码重复!',
+        placement: 'top',
+      })
       return
     }
     if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
@@ -106,7 +78,9 @@ export const Page: React.FC = () => {
             size="large"
             icon={isDark ? <MoonOutlined /> : <SunOutlined />}
             onClick={toggleDarkMode}
-          />
+          >
+            {isDark ? '暗黑模式' : '浅色模式'}
+          </Button>
         </div>
         <h2 className="text-center text-3xl dark:text-white">
           <span>{product?.productName}</span>

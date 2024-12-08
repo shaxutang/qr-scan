@@ -1,3 +1,4 @@
+import { useDark } from '@/store/dark'
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons'
 import { Line } from '@ant-design/plots'
 import { Card, Col, Empty, Row, Statistic } from 'antd'
@@ -92,11 +93,14 @@ const generateChartData = (grouped: Record<string, DataType[]>) => {
 }
 
 const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
+  const { isDark } = useDark()
   const grouped = groupByHour(data)
   const { currentHourCapacity, productionSpeed, growth, totalCapacity } =
     calculateCapacity(data, grouped)
   const chartData = generateChartData(grouped)
+
   const config = {
+    theme: isDark ? 'classicDark' : 'classic',
     data: chartData,
     xField: 'time',
     yField: 'capacity',
@@ -111,11 +115,11 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
       tooltip: {
         marker: false,
         render: (event: any, { title, items }: any) => (
-          <div className="space-y-2">
+          <div className="space-y-2 dark:text-white">
             {items.map((item: any) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between text-base"
+                className="flex items-center justify-between"
               >
                 <div>{item.name === 'capacity' ? '产能' : '时间'}</div>
                 <div>
@@ -137,9 +141,9 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
   const isGrowth = growth >= 0
   const icon = isGrowth ? <ArrowUpOutlined /> : <ArrowDownOutlined />
   const valueStyle = {
-    color: isGrowth ? '#3f8600' : '#cf1322',
-    fontWeight: 800,
-    fontSize: 32,
+    color: isGrowth ? '#3f8600' : '#cf1362',
+    fontWeight: 400,
+    fontSize: 36,
   }
 
   return (
@@ -151,7 +155,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
               title="当前时间段产能"
               value={currentHourCapacity}
               precision={0}
-              valueStyle={{ fontWeight: 800, fontSize: 32 }}
+              valueStyle={{ fontWeight: 400, fontSize: 36 }}
               suffix="pcs"
             />
           </Card>
@@ -161,7 +165,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
             <Statistic
               title="总产能"
               value={totalCapacity}
-              valueStyle={{ fontWeight: 800, fontSize: 32 }}
+              valueStyle={{ fontWeight: 400, fontSize: 36 }}
               precision={0}
               suffix="pcs"
             />
@@ -173,7 +177,7 @@ const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
               title="生产速度"
               value={productionSpeed.toFixed(2)}
               precision={2}
-              valueStyle={{ color: '#1677ff', fontWeight: 800, fontSize: 32 }}
+              valueStyle={{ color: '#1677ff', fontWeight: 400, fontSize: 36 }}
               suffix="pcs /小时"
             />
           </Card>
