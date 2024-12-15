@@ -15,7 +15,7 @@ import ScanTable from './ScanTable'
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [notificationApi, notificationHolder] = notification.useNotification()
-  const { product } = useScan()
+  const { product ,setProduct} = useScan()
   const { isDark, toggleDarkMode } = useDark()
 
   useEffect(() => {
@@ -45,12 +45,18 @@ export const Page: React.FC = () => {
       })
       return
     }
+    let saveData=[];
     if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
-      setDataSource([data])
+      saveData=[data];
+      setProduct({
+        ...product,
+        scanDate:dayjs().toDate().getTime()
+      })
     } else {
-      setDataSource([data, ...dataSource])
+      saveData=[data, ...dataSource]
     }
-    saveScanData(product.productValue, [data, ...dataSource])
+    setDataSource(saveData)
+    saveScanData(product.productValue, saveData)
   }
 
   const handleDelete = (qrcode: string) => {
