@@ -86,6 +86,12 @@ app.on('activate', () => {
   }
 })
 
+app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true
+  })
+})
+
 /**
  * 保存文件
  */
