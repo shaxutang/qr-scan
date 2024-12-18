@@ -3,9 +3,10 @@ import { useDark } from '@/store/dark'
 import { useScan } from '@/store/product'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
+import { say } from '@/utils/video'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
-import { Button, notification } from 'antd'
-import { useEffect, useState } from 'react'
+import { Button, Modal, notification, Result } from 'antd'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
@@ -14,9 +15,11 @@ import ScanTable from './ScanTable'
 
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
+  const [showErrorModal, setShowErrorModal] = useState(false)
   const [notificationApi, notificationHolder] = notification.useNotification()
-  const { product ,setProduct} = useScan()
+  const { product, setProduct } = useScan()
   const { isDark, toggleDarkMode } = useDark()
+  const tiemr = useRef<NodeJS.Timeout>(null!)
 
   useEffect(() => {
     readScanData(product?.productValue).then((data) => {
@@ -35,6 +38,19 @@ export const Page: React.FC = () => {
   }, [product.scanDate])
 
   const onSubmit = (data: DataType) => {
+    showErrorModal && setShowErrorModal(false)
+    const regexp = /\d{7}W\d{10}/gm
+
+    if (!regexp.test(data.qrcode)) {
+      say('扫码异常，请检查输入法是否是英文或条码格式错误')
+      setShowErrorModal(true)
+      clearTimeout(tiemr.current)
+      tiemr.current = setTimeout(() => {
+        setShowErrorModal(false)
+      }, 10000)
+      return
+    }
+
     const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
     if (index !== -1) {
       notificationApi.info({
@@ -45,15 +61,15 @@ export const Page: React.FC = () => {
       })
       return
     }
-    let saveData=[];
+    let saveData = []
     if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
-      saveData=[data];
+      saveData = [data]
       setProduct({
         ...product,
-        scanDate:dayjs().toDate().getTime()
+        scanDate: dayjs().toDate().getTime(),
       })
     } else {
-      saveData=[data, ...dataSource]
+      saveData = [data, ...dataSource]
     }
     setDataSource(saveData)
     saveScanData(product.productValue, saveData)
@@ -114,6 +130,31 @@ export const Page: React.FC = () => {
       <div className="w-full flex-auto">
         <ScanTable data={dataSource} onDelete={handleDelete} />
       </div>
+      <Modal
+        title="错误提示"
+        open={showErrorModal}
+        width="80vw"
+        styles={{
+          body: {
+            height: '60vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            fontSize: 36,
+          },
+        }}
+        footer={null}
+        maskClosable
+        onCancel={() => setShowErrorModal(false)}
+      >
+        <Result
+          status="error"
+          title={<h2 className="mb-4 text-4xl">扫码格式错误，请重新扫码</h2>}
+          subTitle={
+            <p className="text-2xl">请检查输入法是否是英文或二维码格式错误！</p>
+          }
+        />
+      </Modal>
       {notificationHolder}
     </section>
   )
