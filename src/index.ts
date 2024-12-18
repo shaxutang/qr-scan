@@ -78,9 +78,11 @@ const init = () => {
   }
 }
 
+let mainWindow: BrowserWindow = null
+
 const createWindow = (): void => {
   init()
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     height: 800,
     width: 1080,
     autoHideMenuBar: true,
@@ -92,7 +94,24 @@ const createWindow = (): void => {
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
   isDev && mainWindow.webContents.openDevTools()
 }
-app.on('ready', createWindow)
+
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on('second-instance', (event) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+  app.on('ready', () => {
+    createWindow()
+    const { Menu } = require('electron')
+    Menu.setApplicationMenu(null) // 隐藏菜单栏
+  })
+}
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
