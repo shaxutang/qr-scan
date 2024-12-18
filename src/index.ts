@@ -25,17 +25,23 @@ if (require('electron-squirrel-startup')) {
 }
 
 const init = () => {
-  const path = join(BASE_DIR, 'wk/qr-scan/product/products.json')
+  const productsPath = join(BASE_DIR, 'wk/qr-scan/product/products.json')
+  const rulesPath = join(BASE_DIR, 'wk/qr-scan/product/rules.json')
 
-  const pathDir = dirname(path)
-  if (!existsSync(pathDir)) {
-    mkdirSync(pathDir, { recursive: true })
+  const productsPathDir = dirname(productsPath)
+  const rulesPathDir = dirname(rulesPath)
+
+  if (!existsSync(productsPathDir)) {
+    mkdirSync(productsPathDir, { recursive: true })
   }
 
-  const isExists = existsSync(path)
-  if (!isExists) {
+  if (!existsSync(rulesPathDir)) {
+    mkdirSync(rulesPathDir, { recursive: true })
+  }
+
+  if (!existsSync(productsPath)) {
     writeFileSync(
-      path,
+      productsPath,
       JSON.stringify([
         { productName: '气压阀', productValue: 'qì_yā_fá' },
         {
@@ -53,6 +59,19 @@ const init = () => {
         {
           productName: 'O5清洁液箱成品气密测试',
           productValue: 'O5_qīng_jié_yè_xiāng_chéng_pǐn_qì_mì_cè_shì',
+        },
+      ]),
+    )
+  }
+
+  if (!existsSync(rulesPath)) {
+    writeFileSync(
+      rulesPath,
+      JSON.stringify([
+        {
+          ruleName: '产线18位条码',
+          ruleValue: '\\d{7}W\\d{10}',
+          isDefault: true,
         },
       ]),
     )
@@ -88,7 +107,7 @@ app.on('activate', () => {
 
 app.whenReady().then(() => {
   app.setLoginItemSettings({
-    openAtLogin: true
+    openAtLogin: true,
   })
 })
 
