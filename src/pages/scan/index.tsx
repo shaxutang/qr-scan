@@ -8,7 +8,7 @@ import { say } from '@/utils/video'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
 import { throttle } from 'lodash'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
@@ -21,70 +21,86 @@ export const Page: React.FC = () => {
   const [notificationApi, notificationHolder] = notification.useNotification()
   const { product, setProduct } = useScan()
   const { isDark, toggleDarkMode } = useDark()
-  const tiemr = useRef<NodeJS.Timeout>(null!)
+  const timer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    readScanData(product?.productValue).then((data) => {
-      setDataSource(data)
-    })
-  }, [])
+    if (product?.productValue) {
+      readScanData(product.productValue).then((data) => {
+        setDataSource(data)
+      })
+    }
+  }, [product?.productValue])
 
   useEffect(() => {
-    product?.scanDate &&
+    if (product?.scanDate && product?.productValue) {
       readScanData(
-        product?.productValue,
-        dayjs(product?.scanDate).format('YYYY-MM-DD'),
+        product.productValue,
+        dayjs(product.scanDate).format('YYYY-MM-DD'),
       ).then((data) => {
         setDataSource(data)
       })
-  }, [product.scanDate])
-
-  const throttleSay = throttle((msg: string) => say(msg), 1000)
-
-  const onSubmit = (data: DataType) => {
-    const regexp = new RegExp(product.scanRule, 'gm')
-
-    if (!regexp.test(data.qrcode)) {
-      throttleSay('扫码异常，请检查输入法是否是英文或条码格式错误')
-      setShowErrorModal(true)
-      clearTimeout(tiemr.current)
-      tiemr.current = setTimeout(() => {
-        setShowErrorModal(false)
-      }, 10000)
-      return
     }
+  }, [product?.scanDate, product?.productValue])
 
-    const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
-    if (index !== -1) {
-      notificationApi.info({
-        key: 'duplicate',
-        message: '友情提示',
-        description: '当前扫描的条码重复!',
-        placement: 'top',
-      })
-      return
-    }
-    let saveData = []
-    if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
-      saveData = [data]
-      setProduct({
-        ...product,
-        scanDate: dayjs().toDate().getTime(),
-      })
-    } else {
-      saveData = [data, ...dataSource]
-    }
-    setDataSource(saveData)
-    saveScanData(product.productValue, saveData)
-  }
+  const throttleSay = throttle(async (msg: string) => say(msg), 1000)
 
-  const handleDelete = (qrcode: string) => {
-    const data = dataSource.find((item) => item.qrcode === qrcode)
-    const date = dayjs(data.date).format('YYYY-MM-DD')
-    const finalData = dataSource.filter((item) => item.qrcode !== qrcode)
-    setDataSource(finalData)
-    saveScanData(product.productValue, finalData, date)
-  }
+  const onSubmit = useCallback(
+    async (data: DataType) => {
+      const regexp = new RegExp(product.scanRule, 'gm')
+
+      if (!regexp.test(data.qrcode)) {
+        throttleSay(
+          '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
+        )
+        setShowErrorModal(true)
+        if (timer.current) {
+          clearTimeout(timer.current)
+        }
+        timer.current = setTimeout(() => {
+          setShowErrorModal(false)
+        }, 10000)
+        return
+      }
+
+      const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
+      if (index !== -1) {
+        notificationApi.info({
+          key: 'duplicate',
+          message: '友情提示',
+          description: '当前扫描的条码重复!',
+          placement: 'top',
+        })
+        return
+      }
+
+      let saveData: DataType[]
+      if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
+        saveData = [data]
+        setProduct({
+          ...product,
+          scanDate: dayjs().toDate().getTime(),
+        })
+      } else {
+        saveData = [data, ...dataSource]
+      }
+      setDataSource(saveData)
+      saveScanData(product.productValue, saveData)
+    },
+    [dataSource, notificationApi, product, setProduct, throttleSay],
+  )
+
+  const handleDelete = useCallback(
+    async (qrcode: string) => {
+      const data = dataSource.find((item) => item.qrcode === qrcode)
+      const date = data ? dayjs(data.date).format('YYYY-MM-DD') : undefined
+      const finalData = dataSource.filter((item) => item.qrcode !== qrcode)
+      setDataSource(finalData)
+      if (date) {
+        saveScanData(product.productValue, finalData, date)
+      }
+    },
+    [dataSource, product.productValue],
+  )
 
   return (
     <section className="min-h-screen px-8 pt-6">
@@ -154,7 +170,9 @@ export const Page: React.FC = () => {
           status="error"
           title={<h2 className="mb-4 text-4xl">条码格式错误，请重新扫码</h2>}
           subTitle={
-            <p className="text-2xl">请检查输入法是否是英文或条码格式错误！</p>
+            <p className="text-2xl">
+              请确认输入法是否是英文或当前扫描条码格式是否有误！
+            </p>
           }
         />
       </Modal>

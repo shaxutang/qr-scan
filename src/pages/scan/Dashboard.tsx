@@ -2,9 +2,10 @@ import { useDark } from '@/store/dark'
 import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons'
 import { Line } from '@ant-design/plots'
 import { Card, Col, Empty, Row, Statistic } from 'antd'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
+
 /**
  * 根据数据中的日期字段，将数据数组按小时分组
  * @param data 数据数组，包含带有日期字段的多个数据对象
@@ -66,9 +67,8 @@ const calculateCapacity = (
     : 0
 
   const productionSpeed = hours.length
-    ? hours.reduce((sum, hour) => {
-        return sum + groupedData[hour]?.length || 0
-      }, 0) / hours.length
+    ? hours.reduce((sum, hour) => sum + (groupedData[hour]?.length || 0), 0) /
+      hours.length
     : 0
   // 返回容量信息，包括当前小时容量、增长率和总容量
   return {
@@ -94,10 +94,16 @@ const generateChartData = (grouped: Record<string, DataType[]>) => {
 
 const Dashboard: React.FC<{ data: DataType[] }> = ({ data }) => {
   const { isDark } = useDark()
-  const grouped = groupByHour(data)
+
+  const grouped = useMemo(() => groupByHour(data), [data])
+  const capacityInfo = useMemo(
+    () => calculateCapacity(data, grouped),
+    [data, grouped],
+  )
+  const chartData = useMemo(() => generateChartData(grouped), [grouped])
+
   const { currentHourCapacity, productionSpeed, growth, totalCapacity } =
-    calculateCapacity(data, grouped)
-  const chartData = generateChartData(grouped)
+    capacityInfo
 
   const config = {
     theme: isDark ? 'classicDark' : 'classic',
