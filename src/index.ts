@@ -132,8 +132,8 @@ ipcMain.handle('electron:export:scan:excel', async (event, data, filePath) => {
     const products = data as DataType[]
 
     worksheet.columns = [
-      { header: '产品名称', key: 'productName', width: 20 },
-      { header: '产品编码', key: 'qrcode', width: 30 },
+      { header: '扫码对象名称', key: 'productName', width: 20 },
+      { header: '扫码对象条码', key: 'qrcode', width: 30 },
       { header: '测试状态', key: 'state', width: 20 },
       { header: '扫码时间', key: 'date', width: 20 },
     ]

@@ -27,14 +27,14 @@ const Page: React.FC = () => {
   ) => {
     e.preventDefault()
     if (!newProductName) {
-      api.warning('产品名称不能为空')
+      api.warning('扫码对象名称不能为空')
       return
     }
     const isExists = products.some(
       (item) => item.productName === newProductName,
     )
     if (isExists) {
-      api.warning('产品已存在')
+      api.warning('扫码对象已存在')
       return
     }
     const product: Product = {
@@ -70,15 +70,15 @@ const Page: React.FC = () => {
         onFinish={onFinish}
       >
         <Form.Item
-          label="产品"
+          label="扫码对象"
           name="productValue"
-          rules={[{ required: true, message: '请选择产品' }]}
+          rules={[{ required: true, message: '请选择扫码对象' }]}
         >
           <Select
             defaultOpen
             allowClear
             showSearch
-            placeholder="请选择产品"
+            placeholder="请选择扫码对象"
             options={products.map(({ productName, productValue }) => ({
               label: productName,
               value: productValue,
@@ -90,7 +90,7 @@ const Page: React.FC = () => {
                 <Divider style={{ margin: '8px 0' }} />
                 <Space style={{ padding: '0 8px 4px' }}>
                   <Input
-                    placeholder="请输入产品名称"
+                    placeholder="请输入扫码对象名称"
                     onKeyDown={(e) => e.stopPropagation()}
                     value={newProductName}
                     onChange={(e) => setNewProductName(e.target.value)}
@@ -100,10 +100,10 @@ const Page: React.FC = () => {
                     icon={<PlusOutlined />}
                     onClick={addItem}
                   >
-                    新增产品
+                    新增
                   </Button>
                   <Link to="/products">
-                    <Button icon={<AppstoreOutlined />}>管理产品</Button>
+                    <Button icon={<AppstoreOutlined />}>管理扫码对象</Button>
                   </Link>
                 </Space>
               </>

@@ -7,13 +7,13 @@ import SearchForm from './SearchForm'
 
 const columns: TableProps<DataType>['columns'] = [
   {
-    title: '产品名称',
+    title: '扫码对象名称',
     dataIndex: 'productName',
     key: 'productName',
     render: (text) => text,
   },
   {
-    title: '产品编号',
+    title: '扫码对象编号',
     dataIndex: 'qrcode',
     key: 'qrcode',
     render: (text) => text,

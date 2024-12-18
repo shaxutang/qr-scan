@@ -68,22 +68,22 @@ const EditModalButton: React.FC<{
         <Form form={form}>
           <Form.Item
             name="productName"
-            label="产品名称"
+            label="扫码对象名称"
             rules={[
-              { required: true, message: '请输入产品名称' },
+              { required: true, message: '请输入扫码对象名称' },
               {
                 required: true,
                 validator: (_, value) => {
                   if (value !== initValue.productName) {
                     return Promise.resolve()
                   } else {
-                    return Promise.reject('产品名称不能和原本的名称一致')
+                    return Promise.reject('扫码对象名称不能和原本的名称一致')
                   }
                 },
               },
             ]}
           >
-            <Input placeholder="请输入产品名称" />
+            <Input placeholder="请输入扫码对象名称" />
           </Form.Item>
         </Form>
       </Modal>
@@ -99,7 +99,7 @@ const Products: React.FC = () => {
       (p) => p.productName === newProduct.productName,
     )
     if (isExists) {
-      api.warning('产品名称重复')
+      api.warning('扫码对象名称重复')
       return
     }
     const arr = products.map((p) =>
@@ -127,7 +127,7 @@ const Products: React.FC = () => {
       render: (text, product, index) => index + 1,
     },
     {
-      title: '产品名称',
+      title: '扫码对象名称',
       dataIndex: 'productName',
       key: 'productName',
     },

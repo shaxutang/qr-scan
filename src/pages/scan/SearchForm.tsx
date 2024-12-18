@@ -25,7 +25,7 @@ const QuickAction: React.FC<{
       <Input
         value={innerValue}
         onChange={(e) => setInnerValue(e.target.value)}
-        placeholder="请输入编码"
+        placeholder="请输入条码"
         className="w-72"
         onKeyDown={handleKeyDown}
       />

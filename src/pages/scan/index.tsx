@@ -93,7 +93,7 @@ export const Page: React.FC = () => {
                 fontSize: 16,
               }}
             />
-            <span className="ml-2">重新选择产品</span>
+            <span className="ml-2">重新选择扫码对象</span>
           </Link>
           <Button
             type="text"
@@ -149,9 +149,9 @@ export const Page: React.FC = () => {
       >
         <Result
           status="error"
-          title={<h2 className="mb-4 text-4xl">扫码格式错误，请重新扫码</h2>}
+          title={<h2 className="mb-4 text-4xl">条码格式错误，请重新扫码</h2>}
           subTitle={
-            <p className="text-2xl">请检查输入法是否是英文或二维码格式错误！</p>
+            <p className="text-2xl">请检查输入法是否是英文或条码格式错误！</p>
           }
         />
       </Modal>
