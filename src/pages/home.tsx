@@ -26,7 +26,11 @@ const Page: React.FC = () => {
     readRules().then((data) => {
       setRules(data)
       if (data.length) {
-        form.setFieldValue('ruleValue', data[0].ruleValue)
+        const defaultRule = data.find((r) => r.isDefault)
+        form.setFieldValue(
+          'ruleValue',
+          defaultRule.ruleValue ?? data[0].ruleValue,
+        )
       }
     })
   }, [])

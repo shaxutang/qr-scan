@@ -1,5 +1,5 @@
 import { Rule } from '@/types'
-import { Form, Input, Modal, ModalProps } from 'antd'
+import { Form, Input, Modal, ModalProps, Switch } from 'antd'
 import { useEffect } from 'react'
 
 export interface RuleFormModalProps extends Omit<ModalProps, 'onOk'> {
@@ -17,7 +17,7 @@ const RuleFormModal: React.FC<RuleFormModalProps> = ({
 
   useEffect(() => {
     initValue && form.setFieldsValue(initValue)
-  }, [])
+  }, [initValue])
 
   const handleOk = () => {
     const rule = form.getFieldsValue()
@@ -49,6 +49,9 @@ const RuleFormModal: React.FC<RuleFormModalProps> = ({
           rules={[{ required: true, message: '请输入条码规则' }]}
         >
           <Input placeholder="请输入条码规则" />
+        </Form.Item>
+        <Form.Item name="isDefault" label="默认" valuePropName="checked">
+          <Switch />
         </Form.Item>
       </Form>
     </Modal>

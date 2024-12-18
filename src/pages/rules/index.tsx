@@ -93,29 +93,53 @@ const Rules: React.FC = () => {
   const [rules, setRules] = useState<Rule[]>([])
   const [api, contextHolder] = message.useMessage()
 
-  const isExists = (newRule: Rule) => {
-    return rules.some((r) => r.ruleValue === newRule.ruleValue)
+  const isExists = (newRule: Rule, isUpdate?: boolean) => {
+    return rules
+      .filter((r) => (isUpdate ? r.ruleValue !== newRule.ruleValue : true))
+      .some((r) => r.ruleValue === newRule.ruleValue)
   }
 
   const onSave = (rule: Rule) => {
     if (isExists(rule)) {
-      api.warning('条码规则名称重复')
+      api.warning('条码规则重复')
       return
     }
-    const arr = [rule, ...rules]
-    setRules(arr)
+    const arr = [rule, ...rules].map((r) => {
+      if (rule.isDefault) {
+        if (r.ruleValue === rule.ruleValue) {
+          return r
+        }
+        return {
+          ...r,
+          isDefault: false,
+        }
+      }
+      return r
+    })
+    setRules([...arr])
     saveRules(arr)
   }
 
   const onUpdate = (oldRule: Rule, newRule: Rule) => {
-    if (isExists(newRule)) {
+    if (isExists(newRule, true)) {
       api.warning('条码规则重复')
       return
     }
-    const arr = rules.map((r) =>
-      r.ruleValue === oldRule.ruleValue ? newRule : r,
-    )
-    setRules(arr)
+    const arr = rules
+      .map((r) => (r.ruleValue === oldRule.ruleValue ? newRule : r))
+      .map((r) => {
+        if (newRule.isDefault) {
+          if (r.ruleValue === newRule.ruleValue) {
+            return r
+          }
+          return {
+            ...r,
+            isDefault: false,
+          }
+        }
+        return r
+      })
+    setRules([...arr])
     saveRules(arr)
     api.success('修改成功')
   }
@@ -146,16 +170,16 @@ const Rules: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      render: (_, product) => (
+      render: (_, rule) => (
         <Space>
           <EditModalButton
-            initValue={product}
-            onOk={(newRule) => onUpdate(product, newRule)}
+            initValue={rule}
+            onOk={(newRule) => onUpdate(rule, newRule)}
           />
           <Popconfirm
             title="确定要删除吗？"
             description="删除后数据会保留，但不会再显示在列表中"
-            onConfirm={() => onDelete(product)}
+            onConfirm={() => onDelete(rule)}
             okText="确定"
             cancelText="取消"
           >

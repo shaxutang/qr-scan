@@ -13,4 +13,5 @@ export interface Product {
 export interface Rule {
   ruleName: string
   ruleValue: string
+  isDefault: boolean
 }
