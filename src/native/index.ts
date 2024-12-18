@@ -1,4 +1,4 @@
-import { DataType, Product } from '../types'
+import { DataType, Product, Rule } from '../types'
 import dayjs from '../utils/dayjs'
 
 export const saveProducts = (products: Product[]) => {
@@ -7,9 +7,22 @@ export const saveProducts = (products: Product[]) => {
     JSON.stringify(products),
   )
 }
-export const readProducts = async () => {
+export const readProducts = async (): Promise<Product[]> => {
   const content = await window.electron.readFile(
     'wk/qr-scan/product/products.json',
+  )
+  return content ? JSON.parse(content) : []
+}
+
+export const saveRules = (products: Rule[]) => {
+  window.electron.saveFile(
+    'wk/qr-scan/product/rules.json',
+    JSON.stringify(products),
+  )
+}
+export const readRules = async (): Promise<Rule[]> => {
+  const content = await window.electron.readFile(
+    'wk/qr-scan/product/rules.json',
   )
   return content ? JSON.parse(content) : []
 }

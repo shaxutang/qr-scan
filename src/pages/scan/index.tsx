@@ -1,3 +1,4 @@
+import FloatButtons from '@/components/FloatButtons'
 import { readScanData, saveScanData } from '@/native'
 import { useDark } from '@/store/dark'
 import { useScan } from '@/store/product'
@@ -6,6 +7,7 @@ import dayjs from '@/utils/dayjs'
 import { say } from '@/utils/video'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
+import { throttle } from 'lodash'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
@@ -37,12 +39,13 @@ export const Page: React.FC = () => {
       })
   }, [product.scanDate])
 
+  const throttleSay = throttle((msg: string) => say(msg), 1000)
+
   const onSubmit = (data: DataType) => {
-    showErrorModal && setShowErrorModal(false)
-    const regexp = /\d{7}W\d{10}/gm
+    const regexp = new RegExp(product.scanRule, 'gm')
 
     if (!regexp.test(data.qrcode)) {
-      say('扫码异常，请检查输入法是否是英文或条码格式错误')
+      throttleSay('扫码异常，请检查输入法是否是英文或条码格式错误')
       setShowErrorModal(true)
       clearTimeout(tiemr.current)
       tiemr.current = setTimeout(() => {
@@ -156,6 +159,7 @@ export const Page: React.FC = () => {
         />
       </Modal>
       {notificationHolder}
+      <FloatButtons />
     </section>
   )
 }

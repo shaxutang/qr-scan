@@ -3,6 +3,7 @@ import { Product } from '../types'
 
 export interface StoreProduct extends Product {
   scanDate: number
+  scanRule: string
 }
 
 export interface ProductStoreType {

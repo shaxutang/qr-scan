@@ -1,3 +1,4 @@
+import FloatButtons from '@/components/FloatButtons'
 import { readProducts, renameFolder, saveProducts } from '@/native'
 import { Product } from '@/types'
 import {
@@ -170,6 +171,7 @@ const Products: React.FC = () => {
         <Button type="primary">返回主页</Button>
       </Link>
       {contextHolder}
+      <FloatButtons />
     </section>
   )
 }

@@ -1,3 +1,4 @@
+import FloatButtons from '@/components/FloatButtons'
 import dayjs from '@/utils/dayjs'
 import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Divider, Form, Input, message, Select, Space } from 'antd'
@@ -5,20 +6,28 @@ import pinyin from 'pinyin'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
-import { readProducts, saveProducts, saveScanData } from '../native'
+import { readProducts, readRules, saveProducts, saveScanData } from '../native'
 import { useScan } from '../store/product'
-import { Product } from '../types'
+import { Product, Rule } from '../types'
 
 const Page: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
+  const [rules, setRules] = useState<Rule[]>([])
   const [newProductName, setNewProductName] = useState<string>('')
   const [api, contextHolder] = message.useMessage()
   const { setProduct } = useScan()
   const navigate = useNavigate()
+  const [form] = Form.useForm()
 
   useEffect(() => {
     readProducts().then((data) => {
       setProducts(data)
+    })
+    readRules().then((data) => {
+      setRules(data)
+      if (data.length) {
+        form.setFieldValue('ruleValue', data[0].ruleValue)
+      }
     })
   }, [])
 
@@ -48,13 +57,20 @@ const Page: React.FC = () => {
     saveProducts([...products, product])
     saveScanData(product.productValue, [])
   }
-  const onFinish = ({ productValue }: { productValue: string }) => {
+  const onFinish = ({
+    productValue,
+    ruleValue,
+  }: {
+    productValue: string
+    ruleValue: string
+  }) => {
     const productName = products.find(
       (item) => item.productValue === productValue,
     ).productName
     setProduct({
       productName,
       productValue,
+      scanRule: ruleValue,
       scanDate: dayjs().toDate().getTime(),
     })
     navigate('/scan')
@@ -65,6 +81,7 @@ const Page: React.FC = () => {
       <Form<{
         productValue: string
       }>
+        form={form}
         layout="vertical"
         className="w-[420px]"
         onFinish={onFinish}
@@ -110,6 +127,32 @@ const Page: React.FC = () => {
             )}
           />
         </Form.Item>
+        <Form.Item
+          label="扫码规则"
+          name="ruleValue"
+          rules={[{ required: true, message: '请选择扫码规则' }]}
+        >
+          <Select
+            allowClear
+            placeholder="请选择扫码规则"
+            options={rules.map(({ ruleName, ruleValue }) => ({
+              label: ruleName,
+              value: ruleValue,
+            }))}
+            size="large"
+            dropdownRender={(menu) => (
+              <>
+                {menu}
+                <Divider style={{ margin: '8px 0' }} />
+                <Link to="/rules">
+                  <Button block icon={<AppstoreOutlined />}>
+                    管理扫码规则
+                  </Button>
+                </Link>
+              </>
+            )}
+          />
+        </Form.Item>
         <Form.Item>
           <Button htmlType="submit" type="primary">
             下一步
@@ -117,6 +160,7 @@ const Page: React.FC = () => {
         </Form.Item>
       </Form>
       {contextHolder}
+      <FloatButtons />
     </section>
   )
 }
