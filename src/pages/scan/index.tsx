@@ -46,7 +46,7 @@ export const Page: React.FC = () => {
 
   const onSubmit = useCallback(
     async (data: DataType) => {
-      const regexp = new RegExp(product.scanRule, 'gm')
+      const regexp = new RegExp(product.scanRule)
 
       if (!regexp.test(data.qrcode)) {
         throttleSay(

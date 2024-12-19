@@ -70,7 +70,7 @@ const init = () => {
       JSON.stringify([
         {
           ruleName: '产线18位条码',
-          ruleValue: '\\d{7}W\\d{10}',
+          ruleValue: '^\\d{7}W\\d{10}$',
           isDefault: true,
         },
       ]),
