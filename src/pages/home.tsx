@@ -6,6 +6,7 @@ import pinyin from 'pinyin'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
+import { version } from '../../package.json'
 import { readProducts, readRules, saveProducts, saveScanData } from '../native'
 import { useScan } from '../store/product'
 import { Product, Rule } from '../types'
@@ -81,7 +82,7 @@ const Page: React.FC = () => {
   }
 
   return (
-    <section className="flex h-screen items-center justify-center">
+    <section className="flex h-screen flex-col items-center justify-center">
       <Form<{
         productValue: string
       }>
@@ -163,6 +164,14 @@ const Page: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div className="footer mt-12 text-center">
+        <div className="mb-2 text-sm text-black/40 dark:text-white/40">
+          Version: {version}
+        </div>
+        <div className="text-sm text-black/40 dark:text-white/40">
+          Copyright © 2024 WellKing IE Group. All rights reserved.
+        </div>
+      </div>
       {contextHolder}
       <FloatButtons />
     </section>
