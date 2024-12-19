@@ -24,58 +24,58 @@ if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
-const init = () => {
-  const productsPath = join(BASE_DIR, 'wk/qr-scan/product/products.json')
-  const rulesPath = join(BASE_DIR, 'wk/qr-scan/product/rules.json')
+interface InitConfig {
+  path: string
+  data: any
+}
 
-  const productsPathDir = dirname(productsPath)
-  const rulesPathDir = dirname(rulesPath)
+const initConfigs: InitConfig[] = [
+  {
+    path: join(BASE_DIR, 'wk/qr-scan/product/products.json'),
+    data: [
+      { productName: '气压阀', productValue: 'qì_yā_fá' },
+      {
+        productName: 'SC下壳-气密测试',
+        productValue: 'SC_xià_ké_-_qì_mì_cè_shì',
+      },
+      {
+        productName: 'SC下壳-漏水测试',
+        productValue: 'SC_xià_ké_-_lòu_shuǐ_cè_shì',
+      },
+      {
+        productName: 'PSC清洁液箱成品气密测试',
+        productValue: 'PSC_qīng_jié_yè_xiāng_chéng_pǐn_qì_mì_cè_shì',
+      },
+      {
+        productName: 'O5清洁液箱成品气密测试',
+        productValue: 'O5_qīng_jié_yè_xiāng_chéng_pǐn_qì_mì_cè_shì',
+      },
+    ],
+  },
+  {
+    path: join(BASE_DIR, 'wk/qr-scan/product/rules.json'),
+    data: [
+      {
+        ruleName: '产线18位条码',
+        ruleValue: '^\\d{7}W\\d{10}$',
+        isDefault: true,
+      },
+    ],
+  },
+]
 
-  if (!existsSync(productsPathDir)) {
-    mkdirSync(productsPathDir, { recursive: true })
-  }
+const init = async () => {
+  initConfigs.forEach(({ path, data }) => {
+    const dir = dirname(path)
 
-  if (!existsSync(rulesPathDir)) {
-    mkdirSync(rulesPathDir, { recursive: true })
-  }
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true })
+    }
 
-  if (!existsSync(productsPath)) {
-    writeFileSync(
-      productsPath,
-      JSON.stringify([
-        { productName: '气压阀', productValue: 'qì_yā_fá' },
-        {
-          productName: 'SC下壳-气密测试',
-          productValue: 'SC_xià_ké_-_qì_mì_cè_shì',
-        },
-        {
-          productName: 'SC下壳-漏水测试',
-          productValue: 'SC_xià_ké_-_lòu_shuǐ_cè_shì',
-        },
-        {
-          productName: 'PSC清洁液箱成品气密测试',
-          productValue: 'PSC_qīng_jié_yè_xiāng_chéng_pǐn_qì_mì_cè_shì',
-        },
-        {
-          productName: 'O5清洁液箱成品气密测试',
-          productValue: 'O5_qīng_jié_yè_xiāng_chéng_pǐn_qì_mì_cè_shì',
-        },
-      ]),
-    )
-  }
-
-  if (!existsSync(rulesPath)) {
-    writeFileSync(
-      rulesPath,
-      JSON.stringify([
-        {
-          ruleName: '产线18位条码',
-          ruleValue: '^\\d{7}W\\d{10}$',
-          isDefault: true,
-        },
-      ]),
-    )
-  }
+    if (!existsSync(path)) {
+      writeFileSync(path, JSON.stringify(data))
+    }
+  })
 }
 
 let mainWindow: BrowserWindow = null
