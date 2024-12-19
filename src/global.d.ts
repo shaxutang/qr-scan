@@ -15,11 +15,12 @@ declare global {
           path: string
         }[]
       >
-      openExportExplorer: (productName: string, date: string) => void
+      openExportExplorer: (productName: string) => void
       renameFolder: (
         oldPath: string,
         newPath: string,
       ) => Promise<{ success: boolean; message: string; path: string }>
+      selectFolder: () => Promise<string>
     }
   }
 }

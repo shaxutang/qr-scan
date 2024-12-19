@@ -62,10 +62,14 @@ export const getExoportList = async (productValue: string) => {
   return window.electron.getExoportList(productValue)
 }
 
-export const openExportExplorer = (productName: string, date: string) => {
-  window.electron.openExportExplorer(productName, date)
+export const openExportExplorer = (productName: string) => {
+  window.electron.openExportExplorer(productName)
 }
 
 export const renameFolder = (oldPath: string, newPath: string) => {
   return window.electron.renameFolder(oldPath, newPath)
+}
+
+export const selectFolder = () => {
+  return window.electron.selectFolder()
 }

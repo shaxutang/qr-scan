@@ -5,8 +5,17 @@ import {
   readScanData,
 } from '@/native'
 import dayjs from '@/utils/dayjs'
-import { HistoryOutlined } from '@ant-design/icons/lib'
-import { Button, Drawer, Empty, List, message, Space } from 'antd'
+import { ExportOutlined, HistoryOutlined } from '@ant-design/icons/lib'
+import {
+  Button,
+  Checkbox,
+  Drawer,
+  Empty,
+  Flex,
+  List,
+  message,
+  Space,
+} from 'antd'
 import { Dayjs } from 'dayjs'
 import { useState } from 'react'
 import { useScan } from '../../store/product'
@@ -17,13 +26,14 @@ const HistoryDawerButton: React.FC = () => {
       name: string
       date: Dayjs
       path: string
-      allowExport: boolean
     }[]
   >([])
   const [open, setOpen] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [messageApi, holder] = message.useMessage()
   const { product, setProduct } = useScan()
+  const [selectedDays, setSelectedDays] = useState<Dayjs[]>([])
+  const [selectAll, setSelectAll] = useState(false)
 
   const onClick = async () => {
     setOpen(true)
@@ -34,7 +44,6 @@ const HistoryDawerButton: React.FC = () => {
         const dateStr = item.path.replace(/^.*[\\/]/, '')
         return {
           ...item,
-          allowExport: true,
           date: dayjs(dateStr),
         }
       })
@@ -47,38 +56,50 @@ const HistoryDawerButton: React.FC = () => {
         name: dayjs().format('YYYY-MM-DD'),
         date: dayjs(),
         path: '',
-        allowExport: false,
       })
     }
     setExportList(finalList)
     setLoading(false)
   }
 
-  const onExport = async (date: Dayjs) => {
+  const onExport = async (date: Dayjs, isLast: boolean = true) => {
     const dateStr = date.format('YYYY-MM-DD')
     const data = await readScanData(product.productValue, dateStr)
-    if (!data.length) {
-      messageApi.info('至少要有一条数据')
-      return
-    }
+
     const { success, message } = await exportScanDataExcel(
       product.productName,
       dateStr,
       data,
     )
     if (success) {
-      messageApi.success(message)
-      openExportExplorer(product.productName, dateStr)
+      isLast && messageApi.success(message)
+      isLast && openExportExplorer(product.productName)
     } else {
-      messageApi.error(message)
+      messageApi.error(`[${dateStr}]导出错误信息：${message}`)
     }
   }
+
+  const onBatchExport = async () => {
+    selectedDays.forEach(async (day, index) =>
+      onExport(day, index === selectedDays.length - 1),
+    )
+  }
+
   const onView = (scanDate: Dayjs) => {
     setProduct({
       ...product,
       scanDate: scanDate.toDate().getTime(),
     })
     setOpen(false)
+  }
+
+  const onSelectAllChange = (checked: boolean) => {
+    if (checked) {
+      setSelectedDays(exportList.map((item) => item.date))
+    } else {
+      setSelectedDays([])
+    }
+    setSelectAll(checked)
   }
 
   return (
@@ -94,16 +115,41 @@ const HistoryDawerButton: React.FC = () => {
         open={open}
         loading={loading}
         width={560}
+        extra={<Button type="primary">导出数据源</Button>}
         onClose={() => setOpen(false)}
       >
+        <Flex gap="small" className="mb-4">
+          <label className="cursor-pointer">
+            <Checkbox
+              checked={selectAll}
+              onChange={() => onSelectAllChange(!selectAll)}
+            />
+            <span className="ml-2">全选</span>
+          </label>
+          <Space className="ml-auto">
+            <div>已选择「{selectedDays.length}」项</div>
+            <Button
+              icon={<ExportOutlined />}
+              disabled={!selectedDays.length}
+              onClick={onBatchExport}
+            >
+              批量导出
+            </Button>
+          </Space>
+        </Flex>
         <List className="space-y-4">
           {exportList.length ? (
             exportList.map((item) => (
-              <List.Item
-                key={item.path}
-                className="flex items-center justify-between text-xl"
-              >
-                <span>
+              <List.Item key={item.path} className="flex items-center text-xl">
+                <Checkbox
+                  checked={selectedDays.some((day) =>
+                    day.isSame(item.date, 'D'),
+                  )}
+                  onClick={() =>
+                    setSelectedDays((prev) => [...prev, item.date])
+                  }
+                />
+                <span className="ml-4">
                   <span>{item.name}</span>
                   {dayjs().isSame(item.date, 'D') && (
                     <span className="ml-1 text-sm text-black/40 dark:text-white/40">
@@ -111,7 +157,7 @@ const HistoryDawerButton: React.FC = () => {
                     </span>
                   )}
                 </span>
-                <Space>
+                <Space className="ml-auto">
                   <Button
                     type="primary"
                     size="small"
@@ -120,12 +166,8 @@ const HistoryDawerButton: React.FC = () => {
                   >
                     查看
                   </Button>
-                  <Button
-                    size="small"
-                    disabled={!item.allowExport}
-                    onClick={() => onExport(item.date)}
-                  >
-                    {item.allowExport ? '导出' : '暂无数据可导出'}
+                  <Button size="small" onClick={() => onExport(item.date)}>
+                    导出
                   </Button>
                 </Space>
               </List.Item>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { Workbook } from 'exceljs'
 import {
   existsSync,
@@ -225,14 +225,10 @@ ipcMain.handle('electron:get:export:list', async (event, productValue) => {
 /**
  * 打开资源管理器
  */
-ipcMain.handle(
-  'electron:open:export:explorer',
-  async (event, productName, date) => {
-    const dir = join(BASE_DIR, `wk\\qr-scan\\downloads\\${productName}`)
-    shell.openPath(dir)
-    shell.openPath(join(dir, `${date}.xlsx`))
-  },
-)
+ipcMain.handle('electron:open:export:explorer', async (event, productName) => {
+  const dir = join(BASE_DIR, `wk\\qr-scan\\downloads\\${productName}`)
+  shell.openPath(dir)
+})
 
 /**
  * 修改文件夹名称
@@ -266,3 +262,17 @@ ipcMain.handle(
     }
   },
 )
+
+ipcMain.handle('electron:select:folder', async () => {
+  const paths = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  })
+  return paths.filePaths[0]
+})
+
+ipcMain.handle('electron:export:datasouce', async () => {
+  const paths = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  })
+  const selectPath = paths.filePaths[0]
+})

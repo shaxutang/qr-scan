@@ -27,6 +27,10 @@ const renameFolder = async (oldPath: string, newPath: string) => {
   return ipcRenderer.invoke('electron:rename:product:folder', oldPath, newPath)
 }
 
+const selectFolder = async () => {
+  return ipcRenderer.invoke('electron:select:folder')
+}
+
 contextBridge.exposeInMainWorld('electron', {
   saveFile,
   readFile,
@@ -34,4 +38,5 @@ contextBridge.exposeInMainWorld('electron', {
   getExoportList,
   openExportExplorer,
   renameFolder,
+  selectFolder,
 })
