@@ -1,4 +1,5 @@
 import {
+  exportDatasource,
   exportScanDataExcel,
   getExoportList,
   openExportExplorer,
@@ -102,6 +103,15 @@ const HistoryDawerButton: React.FC = () => {
     setSelectAll(checked)
   }
 
+  const onExportDatasource = async () => {
+    const { success, message } = await exportDatasource()
+    if (success) {
+      messageApi.success(message)
+    } else {
+      messageApi.error(`导出错误信息：${message}`)
+    }
+  }
+
   return (
     <>
       <Button icon={<HistoryOutlined />} onClick={onClick}>
@@ -115,7 +125,11 @@ const HistoryDawerButton: React.FC = () => {
         open={open}
         loading={loading}
         width={560}
-        extra={<Button type="primary">导出数据源</Button>}
+        extra={
+          <Button type="primary" onClick={onExportDatasource}>
+            导出数据源
+          </Button>
+        }
         onClose={() => setOpen(false)}
       >
         <Flex gap="small" className="mb-4">
@@ -126,7 +140,7 @@ const HistoryDawerButton: React.FC = () => {
             />
             <span className="ml-2">全选</span>
           </label>
-          <Space className="ml-auto">
+          <Space size="middle" className="ml-auto">
             <div>已选择「{selectedDays.length}」项</div>
             <Button
               icon={<ExportOutlined />}
@@ -141,22 +155,24 @@ const HistoryDawerButton: React.FC = () => {
           {exportList.length ? (
             exportList.map((item) => (
               <List.Item key={item.path} className="flex items-center text-xl">
-                <Checkbox
-                  checked={selectedDays.some((day) =>
-                    day.isSame(item.date, 'D'),
-                  )}
-                  onClick={() =>
-                    setSelectedDays((prev) => [...prev, item.date])
-                  }
-                />
-                <span className="ml-4">
-                  <span>{item.name}</span>
-                  {dayjs().isSame(item.date, 'D') && (
-                    <span className="ml-1 text-sm text-black/40 dark:text-white/40">
-                      (今天)
-                    </span>
-                  )}
-                </span>
+                <label className="flex cursor-pointer items-center text-xl">
+                  <Checkbox
+                    checked={selectedDays.some((day) =>
+                      day.isSame(item.date, 'D'),
+                    )}
+                    onClick={() =>
+                      setSelectedDays((prev) => [...prev, item.date])
+                    }
+                  />
+                  <span className="ml-4">
+                    <span>{item.name}</span>
+                    {dayjs().isSame(item.date, 'D') && (
+                      <span className="ml-1 text-sm text-black/40 dark:text-white/40">
+                        (今天)
+                      </span>
+                    )}
+                  </span>
+                </label>
                 <Space className="ml-auto">
                   <Button
                     type="primary"

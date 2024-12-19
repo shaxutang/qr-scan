@@ -31,6 +31,10 @@ const selectFolder = async () => {
   return ipcRenderer.invoke('electron:select:folder')
 }
 
+const exportDatasource = async () => {
+  return ipcRenderer.invoke('electron:export:datasource')
+}
+
 contextBridge.exposeInMainWorld('electron', {
   saveFile,
   readFile,
@@ -39,4 +43,5 @@ contextBridge.exposeInMainWorld('electron', {
   openExportExplorer,
   renameFolder,
   selectFolder,
+  exportDatasource,
 })

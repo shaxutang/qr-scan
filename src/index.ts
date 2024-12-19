@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { Workbook } from 'exceljs'
+import { copy } from 'fs-extra'
 import {
   existsSync,
   mkdirSync,
@@ -270,9 +271,20 @@ ipcMain.handle('electron:select:folder', async () => {
   return paths.filePaths[0]
 })
 
-ipcMain.handle('electron:export:datasouce', async () => {
+ipcMain.handle('electron:export:datasource', async () => {
   const paths = await dialog.showOpenDialog({
     properties: ['openDirectory'],
   })
-  const selectPath = paths.filePaths[0]
+  if (paths.canceled) {
+    return { success: true, message: '操作取消' }
+  }
+  const selectPath = join(paths.filePaths[0], 'wk')
+  const sourcePath = join(BASE_DIR, 'wk')
+  try {
+    await copy(sourcePath, selectPath)
+    return { success: true, message: '数据源导出成功' }
+  } catch (err) {
+    console.log(err)
+    return { success: false, message: '数据源导出失败' }
+  }
 })

@@ -73,3 +73,7 @@ export const renameFolder = (oldPath: string, newPath: string) => {
 export const selectFolder = () => {
   return window.electron.selectFolder()
 }
+
+export const exportDatasource = () => {
+  return window.electron.exportDatasource()
+}

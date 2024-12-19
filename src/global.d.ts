@@ -21,6 +21,10 @@ declare global {
         newPath: string,
       ) => Promise<{ success: boolean; message: string; path: string }>
       selectFolder: () => Promise<string>
+      exportDatasource: () => Promise<{
+        success: boolean
+        message: string
+      }>
     }
   }
 }
