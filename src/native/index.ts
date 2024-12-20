@@ -1,7 +1,7 @@
 import { DataType, Product, Rule } from '../types'
 import dayjs from '../utils/dayjs'
 
-export const saveProducts = (products: Product[]) => {
+export const saveProducts = async (products: Product[]) => {
   window.electron.saveFile(
     'wk/qr-scan/product/products.json',
     JSON.stringify(products),
@@ -14,7 +14,7 @@ export const readProducts = async (): Promise<Product[]> => {
   return content ? JSON.parse(content) : []
 }
 
-export const saveRules = (products: Rule[]) => {
+export const saveRules = async (products: Rule[]) => {
   window.electron.saveFile(
     'wk/qr-scan/product/rules.json',
     JSON.stringify(products),
@@ -27,7 +27,7 @@ export const readRules = async (): Promise<Rule[]> => {
   return content ? JSON.parse(content) : []
 }
 
-export const saveScanData = (
+export const saveScanData = async (
   productName: string,
   data: DataType[],
   date?: string,
@@ -62,18 +62,18 @@ export const getExoportList = async (productValue: string) => {
   return window.electron.getExoportList(productValue)
 }
 
-export const openExportExplorer = (productName: string) => {
+export const openExportExplorer = async (productName: string) => {
   window.electron.openExportExplorer(productName)
 }
 
-export const renameFolder = (oldPath: string, newPath: string) => {
+export const renameFolder = async (oldPath: string, newPath: string) => {
   return window.electron.renameFolder(oldPath, newPath)
 }
 
-export const selectFolder = () => {
+export const selectFolder = async () => {
   return window.electron.selectFolder()
 }
 
-export const exportDatasource = () => {
+export const exportDatasource = async () => {
   return window.electron.exportDatasource()
 }

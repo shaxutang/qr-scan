@@ -15,6 +15,8 @@ import ExtraAction from './ExtraAction'
 import ScanForm from './ScanForm'
 import ScanTable from './ScanTable'
 
+const throttleSay = throttle(async (msg: string) => say(msg), 1000)
+
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [showErrorModal, setShowErrorModal] = useState(false)
@@ -43,8 +45,6 @@ export const Page: React.FC = () => {
     }
   }, [product?.scanDate, product?.productValue])
 
-  const throttleSay = throttle(async (msg: string) => say(msg), 1000)
-
   const onSubmit = useCallback(
     async (data: DataType) => {
       const regexp = new RegExp(product.scanRule)
@@ -57,9 +57,7 @@ export const Page: React.FC = () => {
         )
         setErrorQrCode(data.qrcode)
         setShowErrorModal(true)
-        if (timer.current) {
-          clearTimeout(timer.current)
-        }
+        clearTimeout(timer.current)
         timer.current = setTimeout(() => {
           setShowErrorModal(false)
         }, 10000)
@@ -90,7 +88,7 @@ export const Page: React.FC = () => {
       setDataSource(saveData)
       saveScanData(product.productValue, saveData)
     },
-    [dataSource, notificationApi, product, setProduct, throttleSay],
+    [dataSource, product],
   )
 
   const handleDelete = useCallback(
