@@ -18,6 +18,7 @@ import ScanTable from './ScanTable'
 export const Page: React.FC = () => {
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorQrCode, setErrorQrCode] = useState('')
   const [notificationApi, notificationHolder] = notification.useNotification()
   const { product, setProduct } = useScan()
   const { isDark, toggleDarkMode } = useDark()
@@ -48,10 +49,13 @@ export const Page: React.FC = () => {
     async (data: DataType) => {
       const regexp = new RegExp(product.scanRule)
 
+      showErrorModal && setShowErrorModal(false)
+
       if (!regexp.test(data.qrcode)) {
         throttleSay(
           '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
         )
+        setErrorQrCode(data.qrcode)
         setShowErrorModal(true)
         if (timer.current) {
           clearTimeout(timer.current)
@@ -174,7 +178,12 @@ export const Page: React.FC = () => {
               请确认输入法是否是英文或当前扫描条码格式是否有误！
             </p>
           }
-        />
+        >
+          <div className="text-center">
+            错误条码：
+            <span className="text-red-500 underline">{errorQrCode}</span>
+          </div>
+        </Result>
       </Modal>
       {notificationHolder}
       <FloatButtons />
