@@ -57,11 +57,13 @@ const Page: React.FC = () => {
         .reduce((s1, s2) => [...s1, ...s2])
         .join('_'),
     }
-    setProducts([...products, product])
+    const savedProducts = [product, ...products]
+    setProducts(savedProducts)
     setNewProductName('')
-    saveProducts([...products, product])
+    saveProducts(savedProducts)
     saveScanData(product.productValue, [])
   }
+
   const onFinish = ({
     productValue,
     ruleValue,

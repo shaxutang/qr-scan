@@ -104,7 +104,7 @@ const Rules: React.FC = () => {
       api.warning('条码规则重复')
       return
     }
-    const arr = [rule, ...rules].map((r) => {
+    const savedRules = [rule, ...rules].map((r) => {
       if (rule.isDefault) {
         if (r.ruleValue === rule.ruleValue) {
           return r
@@ -116,8 +116,8 @@ const Rules: React.FC = () => {
       }
       return r
     })
-    setRules([...arr])
-    saveRules(arr)
+    setRules(savedRules)
+    saveRules(savedRules)
   }
 
   const onUpdate = (oldRule: Rule, newRule: Rule) => {
