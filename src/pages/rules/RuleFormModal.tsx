@@ -20,10 +20,10 @@ const RuleFormModal: React.FC<RuleFormModalProps> = ({
   }, [initValue])
 
   const handleOk = () => {
-    const rule = form.getFieldsValue()
     form
       .validateFields()
       .then(() => {
+        const rule = form.getFieldsValue()
         onOk?.(rule)
       })
       .catch(() => {})

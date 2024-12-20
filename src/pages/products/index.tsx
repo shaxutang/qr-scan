@@ -1,52 +1,69 @@
 import FloatButtons from '@/components/FloatButtons'
 import { readProducts, renameFolder, saveProducts } from '@/native'
 import { Product } from '@/types'
+import { PlusOutlined } from '@ant-design/icons'
 import {
   Button,
   Card,
-  Form,
-  Input,
   message,
-  Modal,
   Popconfirm,
   Space,
   Table,
   TableProps,
 } from 'antd'
-import pinyin from 'pinyin'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ProductFormModal from './ProductFormModal'
+
+const NewModalButton: React.FC<{
+  onOk: (product: Product) => void
+}> = ({ onOk }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const showModal = (e: React.MouseEvent) => {
+    setIsModalOpen(true)
+  }
+
+  const handleOk = (product: Product) => {
+    onOk(product)
+    setIsModalOpen(false)
+  }
+
+  const handleCancel = () => {
+    setIsModalOpen(false)
+  }
+
+  return (
+    <>
+      <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+        新增扫码对象
+      </Button>
+      <ProductFormModal
+        title="新增"
+        forceRender
+        destroyOnClose
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
+  )
+}
 
 const EditModalButton: React.FC<{
   initValue: Product
   onOk: (product: Product) => void
 }> = ({ initValue, onOk }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [form] = Form.useForm<Product>()
-
-  useEffect(() => {
-    form.setFieldsValue(initValue)
-  }, [])
 
   const showModal = (e: React.MouseEvent) => {
     setIsModalOpen(true)
   }
 
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then(() => {
-        const { productName } = form.getFieldsValue()
-        const productValue = pinyin(productName)
-          .reduce((s1, s2) => [...s1, ...s2])
-          .join('_')
-        onOk?.({
-          productName,
-          productValue,
-        })
-        setIsModalOpen(false)
-      })
-      .catch(() => {})
+  const handleOk = (product: Product) => {
+    onOk?.(product)
+    setIsModalOpen(false)
   }
 
   const handleCancel = () => {
@@ -58,36 +75,16 @@ const EditModalButton: React.FC<{
       <Button type="primary" size="small" onClick={showModal}>
         编辑
       </Button>
-      <Modal
+      <ProductFormModal
         title="编辑"
         forceRender
         destroyOnClose
+        initValue={initValue}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
-      >
-        <Form form={form}>
-          <Form.Item
-            name="productName"
-            label="扫码对象名称"
-            rules={[
-              { required: true, message: '请输入扫码对象名称' },
-              {
-                required: true,
-                validator: (_, value) => {
-                  if (value !== initValue.productName) {
-                    return Promise.resolve()
-                  } else {
-                    return Promise.reject('扫码对象名称不能和原本的名称一致')
-                  }
-                },
-              },
-            ]}
-          >
-            <Input placeholder="请输入扫码对象名称" />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onClose={() => setIsModalOpen(false)}
+      />
     </>
   )
 }
@@ -95,11 +92,17 @@ const EditModalButton: React.FC<{
 const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [api, contextHolder] = message.useMessage()
-  const onOk = (oldProduct: Product, newProduct: Product) => {
-    const isExists = products.some(
-      (p) => p.productName === newProduct.productName,
-    )
-    if (isExists) {
+
+  const isExists = (newProduct: Product, isUpdate?: boolean) => {
+    return products
+      .filter((p) =>
+        isUpdate ? p.productValue !== newProduct.productValue : true,
+      )
+      .some((p) => p.productValue === newProduct.productValue)
+  }
+
+  const onUpdate = (oldProduct: Product, newProduct: Product) => {
+    if (isExists(newProduct, true)) {
       api.warning('扫码对象名称重复')
       return
     }
@@ -110,6 +113,17 @@ const Products: React.FC = () => {
     saveProducts(arr)
     renameFolder(oldProduct.productValue, newProduct.productValue)
     api.success('修改成功')
+  }
+
+  const onSave = (product: Product) => {
+    if (isExists(product)) {
+      api.warning('扫码对象名称重复')
+      return
+    }
+    const arr = [product, ...products]
+    setProducts(arr)
+    saveProducts(arr)
+    api.success('新增成功')
   }
 
   const onDelete = (product: Product) => {
@@ -139,7 +153,7 @@ const Products: React.FC = () => {
         <Space>
           <EditModalButton
             initValue={product}
-            onOk={(newProduct) => onOk(product, newProduct)}
+            onOk={(newProduct) => onUpdate(product, newProduct)}
           />
           <Popconfirm
             title="确定要删除吗？"
@@ -165,6 +179,9 @@ const Products: React.FC = () => {
   return (
     <section className="flex h-screen flex-col items-center justify-center gap-y-4 overflow-x-hidden">
       <Card className="w-[50vw]">
+        <div className="mb-4">
+          <NewModalButton onOk={onSave} />
+        </div>
         <Table columns={columns} dataSource={products} rowKey="productValue" />
       </Card>
       <Link to="/">

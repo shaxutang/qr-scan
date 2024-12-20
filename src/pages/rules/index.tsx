@@ -16,9 +16,8 @@ import { Link } from 'react-router-dom'
 import RuleFormModal from './RuleFormModal'
 
 const NewModalButton: React.FC<{
-  initValue?: Rule
   onOk: (rule: Rule) => void
-}> = ({ initValue, onOk }) => {
+}> = ({ onOk }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const showModal = () => {
@@ -43,10 +42,10 @@ const NewModalButton: React.FC<{
         title="新增"
         forceRender
         destroyOnClose
-        initValue={initValue}
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
+        onClose={() => setIsModalOpen(false)}
       />
     </>
   )
@@ -84,6 +83,7 @@ const EditModalButton: React.FC<{
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
+        onClose={() => setIsModalOpen(false)}
       />
     </>
   )
