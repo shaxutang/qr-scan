@@ -1,3 +1,4 @@
+import { useScan } from '@/store/scan'
 import type { TableProps } from 'antd'
 import { Button, Card, Popconfirm, Switch, Table, Tag } from 'antd'
 import React, { useMemo, useState } from 'react'
@@ -32,17 +33,20 @@ const columns: TableProps<DataType>['columns'] = [
 ]
 
 const ScanTable: React.FC<{
-  data: DataType[]
   onDelete?: (qrcode: string) => void
-}> = ({ data, onDelete }) => {
+}> = ({ onDelete }) => {
+  const scan = useScan()
   const [input, setInput] = useState('')
   const [advanced, setAdvanced] = useState(false)
 
   const filterDataSource = useMemo<DataType[]>(() => {
-    return data.filter(
-      (data) => data.qrcode.toLowerCase().indexOf(input?.toLowerCase()) !== -1,
-    )
-  }, [data, input])
+    return scan
+      .getFlatDatas()
+      .filter(
+        (data) =>
+          data.qrcode.toLowerCase().indexOf(input?.toLowerCase()) !== -1,
+      )
+  }, [input, scan.totalCapacity])
 
   const getColumns = () => {
     return advanced
@@ -90,6 +94,13 @@ const ScanTable: React.FC<{
         dataSource={filterDataSource}
         rowKey="qrcode"
         scroll={{ y: 500 }}
+        pagination={{
+          total: scan.totalCapacity,
+          showTotal: (total) => `共 ${total} 条数据`,
+          onChange: (page) => {
+            scan.getByPage(page)
+          },
+        }}
       />
     </Card>
   )

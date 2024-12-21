@@ -10,28 +10,37 @@ import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
 import { Dayjs } from 'dayjs'
 import { throttle } from 'lodash'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
 import ScanForm from './ScanForm'
 import ScanTable from './ScanTable'
 
+type Page = {
+  current: number
+  total: number
+}
+
 const throttleSay = throttle(async (msg: string) => say(msg), 1000)
 
-export const Page: React.FC = () => {
-  const navigate = useNavigate()
-  const { store } = useScan()
+const Page: React.FC = () => {
+  const scan = useScan()
   const { product, setProduct } = useProduct()
   const { isDark, toggleDarkMode } = useDark()
   const [notificationApi, notificationHolder] = notification.useNotification()
 
-  const [dataSource, setDataSource] = useState<DataType[]>([])
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorQrCode, setErrorQrCode] = useState('')
+  const [pageNumber, setPageNumber] = useState<number>(1)
 
   const timer = useRef<NodeJS.Timeout | null>(null)
   const clearTime = useRef<Dayjs>(dayjs())
+
+  const tableData = useMemo(
+    () => scan.getByPage(pageNumber),
+    [scan.totalCapacity],
+  )
 
   useEffect(() => {
     if (product?.productValue) {
@@ -41,7 +50,7 @@ export const Page: React.FC = () => {
           ? dayjs(product.scanDate).format('YYYY-MM-DD')
           : undefined,
       ).then((data) => {
-        store.setDataByFull(data)
+        scan.setDataByFull(data)
       })
     }
   }, [product?.scanDate, product?.productValue])
@@ -67,8 +76,7 @@ export const Page: React.FC = () => {
         }
       }
 
-      const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
-      if (index !== -1) {
+      if (scan.isExists(data.qrcode)) {
         notificationApi.info({
           key: 'duplicate',
           message: '友情提示',
@@ -78,39 +86,30 @@ export const Page: React.FC = () => {
         return
       }
 
-      let saveData: DataType[]
       if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
-        saveData = [data]
+        scan.reset()
         setProduct({
           ...product,
           scanDate: dayjs().toDate().getTime(),
         })
-      } else {
-        saveData = [data, ...dataSource]
       }
-      setDataSource(saveData)
-      saveScanData(product.productValue, saveData)
-
-      const now = dayjs()
-      if (now.diff(clearTime.current, 'm') >= 5) {
-        navigate('/scan', { flushSync: true })
-        clearTime.current = now
-      }
+      scan.submit(data)
+      saveScanData(product.productValue, scan.getFlatDatas())
     },
-    [dataSource, product, clearTime.current],
+    [product, clearTime.current],
   )
 
   const handleDelete = useCallback(
     async (qrcode: string) => {
-      const data = dataSource.find((item) => item.qrcode === qrcode)
-      const date = data ? dayjs(data.date).format('YYYY-MM-DD') : undefined
-      const finalData = dataSource.filter((item) => item.qrcode !== qrcode)
-      setDataSource(finalData)
+      const date = product.scanDate
+        ? dayjs(product.scanDate).format('YYYY-MM-DD')
+        : undefined
+      scan.deleteByQrcode(qrcode)
       if (date) {
-        saveScanData(product.productValue, finalData, date)
+        saveScanData(product.productValue, scan.getFlatDatas(), date)
       }
     },
-    [dataSource, product.productValue],
+    [product.productValue],
   )
 
   return (
@@ -155,10 +154,10 @@ export const Page: React.FC = () => {
           </div>
           <ExtraAction />
         </div>
-        <Dashboard data={dataSource} />
+        <Dashboard />
       </div>
       <div className="w-full flex-auto">
-        <ScanTable data={dataSource} onDelete={handleDelete} />
+        <ScanTable onDelete={handleDelete} />
       </div>
       <Modal
         title="错误提示"
