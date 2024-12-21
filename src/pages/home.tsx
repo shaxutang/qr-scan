@@ -1,4 +1,5 @@
 import FloatButtons from '@/components/FloatButtons'
+import { useProduct } from '@/store/product'
 import dayjs from '@/utils/dayjs'
 import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Divider, Form, Input, message, Select, Space } from 'antd'
@@ -8,7 +9,6 @@ import { useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
 import { version } from '../../package.json'
 import { readProducts, readRules, saveProducts, saveScanData } from '../native'
-import { useScan } from '../store/product'
 import { Product, Rule } from '../types'
 
 const Page: React.FC = () => {
@@ -16,7 +16,7 @@ const Page: React.FC = () => {
   const [rules, setRules] = useState<Rule[]>([])
   const [newProductName, setNewProductName] = useState<string>('')
   const [api, contextHolder] = message.useMessage()
-  const { setProduct } = useScan()
+  const { setProduct } = useProduct()
   const navigate = useNavigate()
   const [form] = Form.useForm()
 

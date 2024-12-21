@@ -1,7 +1,8 @@
 import FloatButtons from '@/components/FloatButtons'
 import { readScanData, saveScanData } from '@/native'
 import { useDark } from '@/store/dark'
-import { useScan } from '@/store/product'
+import { useProduct } from '@/store/product'
+import { useScan } from '@/store/scan'
 import { DataType } from '@/types'
 import dayjs from '@/utils/dayjs'
 import { say } from '@/utils/video'
@@ -20,7 +21,8 @@ const throttleSay = throttle(async (msg: string) => say(msg), 1000)
 
 export const Page: React.FC = () => {
   const navigate = useNavigate()
-  const { product, setProduct } = useScan()
+  const { store } = useScan()
+  const { product, setProduct } = useProduct()
   const { isDark, toggleDarkMode } = useDark()
   const [notificationApi, notificationHolder] = notification.useNotification()
 
@@ -33,19 +35,13 @@ export const Page: React.FC = () => {
 
   useEffect(() => {
     if (product?.productValue) {
-      readScanData(product.productValue).then((data) => {
-        setDataSource(data)
-      })
-    }
-  }, [product?.productValue])
-
-  useEffect(() => {
-    if (product?.scanDate && product?.productValue) {
       readScanData(
         product.productValue,
-        dayjs(product.scanDate).format('YYYY-MM-DD'),
+        product?.scanDate
+          ? dayjs(product.scanDate).format('YYYY-MM-DD')
+          : undefined,
       ).then((data) => {
-        setDataSource(data)
+        store.setDataByFull(data)
       })
     }
   }, [product?.scanDate, product?.productValue])

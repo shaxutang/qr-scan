@@ -43,7 +43,7 @@ class ScanStore {
 
 const scanStore = new ScanStore()
 
-export const useScan = () => {
+export const useProduct = () => {
   const product = useSyncExternalStore(
     scanStore.subscribe,
     scanStore.getSnapshot,

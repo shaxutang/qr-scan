@@ -19,7 +19,7 @@ import {
 } from 'antd'
 import { Dayjs } from 'dayjs'
 import { useState } from 'react'
-import { useScan } from '../../store/product'
+import { useProduct } from '../../store/product'
 
 const HistoryDawerButton: React.FC = () => {
   const [exportList, setExportList] = useState<
@@ -32,7 +32,7 @@ const HistoryDawerButton: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [messageApi, holder] = message.useMessage()
-  const { product, setProduct } = useScan()
+  const { product, setProduct } = useProduct()
   const [selectedDays, setSelectedDays] = useState<Dayjs[]>([])
   const [selectAll, setSelectAll] = useState(false)
 

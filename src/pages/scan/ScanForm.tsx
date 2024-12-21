@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from 'antd'
 import { useEffect, useRef } from 'react'
-import { useScan } from '../../store/product'
+import { useProduct } from '../../store/product'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
 
@@ -22,7 +22,7 @@ const ScanForm: React.FC<{
 }> = ({ disabled, onSubmit }) => {
   const [api, contextHolder] = notification.useNotification()
   const [form] = Form.useForm<FormInstance>()
-  const { product } = useScan()
+  const { product } = useProduct()
   const inputRef = useRef<InputRef>(null!)
 
   useEffect(() => {
