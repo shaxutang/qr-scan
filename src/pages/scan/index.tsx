@@ -7,9 +7,10 @@ import dayjs from '@/utils/dayjs'
 import { say } from '@/utils/video'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
+import { Dayjs } from 'dayjs'
 import { throttle } from 'lodash'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
 import ScanForm from './ScanForm'
@@ -18,13 +19,17 @@ import ScanTable from './ScanTable'
 const throttleSay = throttle(async (msg: string) => say(msg), 1000)
 
 export const Page: React.FC = () => {
+  const navigate = useNavigate()
+  const { product, setProduct } = useScan()
+  const { isDark, toggleDarkMode } = useDark()
+  const [notificationApi, notificationHolder] = notification.useNotification()
+
   const [dataSource, setDataSource] = useState<DataType[]>([])
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorQrCode, setErrorQrCode] = useState('')
-  const [notificationApi, notificationHolder] = notification.useNotification()
-  const { product, setProduct } = useScan()
-  const { isDark, toggleDarkMode } = useDark()
+
   const timer = useRef<NodeJS.Timeout | null>(null)
+  const clearTime = useRef<Dayjs>(dayjs())
 
   useEffect(() => {
     if (product?.productValue) {
@@ -47,21 +52,23 @@ export const Page: React.FC = () => {
 
   const onSubmit = useCallback(
     async (data: DataType) => {
-      const regexp = new RegExp(product.scanRule)
+      if (product.scanRule) {
+        const regexp = new RegExp(product.scanRule)
 
-      showErrorModal && setShowErrorModal(false)
+        showErrorModal && setShowErrorModal(false)
 
-      if (!regexp.test(data.qrcode)) {
-        throttleSay(
-          '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
-        )
-        setErrorQrCode(data.qrcode)
-        setShowErrorModal(true)
-        clearTimeout(timer.current)
-        timer.current = setTimeout(() => {
-          setShowErrorModal(false)
-        }, 10000)
-        return
+        if (!regexp.test(data.qrcode)) {
+          throttleSay(
+            '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
+          )
+          setErrorQrCode(data.qrcode)
+          setShowErrorModal(true)
+          clearTimeout(timer.current)
+          timer.current = setTimeout(() => {
+            setShowErrorModal(false)
+          }, 10000)
+          return
+        }
       }
 
       const index = dataSource.findIndex((t) => t.qrcode === data.qrcode)
@@ -87,8 +94,14 @@ export const Page: React.FC = () => {
       }
       setDataSource(saveData)
       saveScanData(product.productValue, saveData)
+
+      const now = dayjs()
+      if (now.diff(clearTime.current, 'm') >= 5) {
+        navigate('/scan', { flushSync: true })
+        clearTime.current = now
+      }
     },
-    [dataSource, product],
+    [dataSource, product, clearTime.current],
   )
 
   const handleDelete = useCallback(
