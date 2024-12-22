@@ -143,7 +143,7 @@ export class ScanStore {
   private getCharData = () => {
     const keys = this.hourCapacityMap.keys()
     return Array.from(keys)
-      .sort()
+      .sort((k1, k2) => k1 - k2)
       .map((key) => {
         return {
           time: dayjs().hour(key).format('HH:00'),
