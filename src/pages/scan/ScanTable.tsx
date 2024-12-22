@@ -1,7 +1,7 @@
 import { useScan } from '@/store/scan'
 import type { TableProps } from 'antd'
 import { Button, Card, Popconfirm, Switch, Table, Tag } from 'antd'
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
 import SearchForm from './SearchForm'
@@ -38,15 +38,9 @@ const ScanTable: React.FC<{
   const scan = useScan()
   const [input, setInput] = useState('')
   const [advanced, setAdvanced] = useState(false)
+  const [pageNum, setPageNum] = useState(1)
 
-  const filterDataSource = useMemo<DataType[]>(() => {
-    return scan
-      .getFlatDatas()
-      .filter(
-        (data) =>
-          data.qrcode.toLowerCase().indexOf(input?.toLowerCase()) !== -1,
-      )
-  }, [input, scan.totalCapacity])
+  const filterDataSource = scan.getByPage(pageNum, input)
 
   const getColumns = () => {
     return advanced
@@ -95,10 +89,13 @@ const ScanTable: React.FC<{
         rowKey="qrcode"
         scroll={{ y: 500 }}
         pagination={{
+          current: pageNum,
           total: scan.totalCapacity,
+          pageSizeOptions: [],
+          pageSize: 10,
           showTotal: (total) => `共 ${total} 条数据`,
           onChange: (page) => {
-            scan.getByPage(page)
+            setPageNum(page)
           },
         }}
       />

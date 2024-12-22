@@ -20,9 +20,12 @@ const MAX_CAPACITY: number = 10
  * @param data 数据数组，包含带有日期字段的多个数据对象
  * @returns 返回一个对象，其中每个键代表一个小时，值是属于该小时的数据数组
  */
-const buildHourCapacityMap = (data: DataType[]): Map<number, number> => {
+const buildHourCapacityMap = (
+  data: DataType[],
+  hourCapacityMap: Map<number, number>,
+) => {
   // 初始化一个空对象用于存储分组后的数据
-  const hourCapacityMap: Map<number, number> = new Map()
+  hourCapacityMap.clear()
 
   // 遍历数据数组中的每个项目
   data.forEach((item) => {
@@ -37,15 +40,11 @@ const buildHourCapacityMap = (data: DataType[]): Map<number, number> => {
     // 将当前数据项添加到对应的小时分组中
     hourCapacityMap.set(hour, (hourCapacityMap.get(hour) ?? 0) + 1)
   })
-
-  // 返回按小时分组的数据对象
-  return hourCapacityMap
 }
 
 export class ScanStore {
-  private datas: DataType[][] = []
+  private datas: DataType[] = []
   private hourCapacityMap: Map<number, number> = new Map()
-  private totalCapacity: number = 0
   private listeners: Set<() => void> = new Set()
   private snapshot: Snapshot = {
     speed: 0,
@@ -54,6 +53,7 @@ export class ScanStore {
     growth: 0,
     charData: [],
   }
+  private cache = new Map()
 
   public subscribe = (listener: () => void) => {
     this.listeners.add(listener)
@@ -64,54 +64,26 @@ export class ScanStore {
 
   private notify = () => {
     this.buildSnapshot()
+    this.cacheSortDats()
     this.listeners.forEach((listener) => listener())
   }
 
-  private splitDataIntoChunks = (data: DataType[]) => {
-    const count = Math.ceil(data.length / MAX_CAPACITY)
-    this.datas = []
-
-    for (let i = 0; i < count; i++) {
-      const start = i * MAX_CAPACITY
-      const end = Math.min(start + MAX_CAPACITY, data.length)
-      this.datas.push(data.slice(start, end))
-    }
-  }
-
   private setDataByFull = (savedData: DataType[] = []) => {
-    if (savedData.length < MAX_CAPACITY) {
-      this.datas = [savedData]
-    } else {
-      this.splitDataIntoChunks(savedData)
-    }
-    this.hourCapacityMap = buildHourCapacityMap(savedData)
-    this.totalCapacity = savedData.length
-    this.buildSnapshot()
+    this.datas = savedData
+    buildHourCapacityMap(savedData, this.hourCapacityMap)
     this.notify()
   }
 
   private submit = (data: DataType) => {
-    this.datas[0].unshift(data)
-    if (this.datas[0].length === MAX_CAPACITY) {
-      this.datas.unshift(this.datas[0])
-      this.datas[0] = []
-    }
-
+    this.datas.push(data)
     const hour = dayjs(data.date).hour()
     this.hourCapacityMap.set(hour, (this.hourCapacityMap.get(hour) ?? 0) + 1)
-
-    this.totalCapacity++
     this.notify()
   }
 
   private deleteByQrcode = (qrcode: string) => {
-    const flatDatas = this.getFlatDatas().filter(
-      (item) => item.qrcode !== qrcode,
-    )
-    console.log(flatDatas)
-    this.hourCapacityMap = buildHourCapacityMap(flatDatas)
-    this.totalCapacity = flatDatas.length
-    this.splitDataIntoChunks(flatDatas)
+    this.datas = this.datas.filter((item) => item.qrcode !== qrcode)
+    buildHourCapacityMap(this.datas, this.hourCapacityMap)
     this.notify()
   }
 
@@ -144,12 +116,12 @@ export class ScanStore {
   }
 
   private getTotalCapacity = () => {
-    return this.totalCapacity
+    return this.datas.length
   }
 
   private speed = () => {
     return this.hourCapacityMap.size > 0
-      ? this.totalCapacity / this.hourCapacityMap.size
+      ? this.datas.length / this.hourCapacityMap.size
       : 0
   }
 
@@ -180,11 +152,12 @@ export class ScanStore {
       })
   }
 
-  private getByPage = (page: number) => {
-    if (page > this.datas.length) {
-      return []
-    }
-    return this.datas[page - 1]
+  private getByPage = (page: number, qrcode?: string) => {
+    return ((this.cache.get('sortDatas') ?? []) as DataType[])
+      .filter((data) =>
+        qrcode ? data.qrcode.lastIndexOf(qrcode) !== -1 : true,
+      )
+      .slice((page - 1) * MAX_CAPACITY, page * MAX_CAPACITY)
   }
 
   public getSnapshot = () => {
@@ -192,13 +165,20 @@ export class ScanStore {
   }
 
   private isExists = (qrcode: string) => {
-    return this.datas.some((item) =>
-      item.some((data) => data.qrcode === qrcode),
+    return this.datas.some((item) => item.qrcode === qrcode)
+  }
+
+  private cacheSortDats = () => {
+    this.cache.set(
+      'sortDatas',
+      this.datas.sort(
+        (d1, d2) => dayjs(d2.date).valueOf() - dayjs(d1.date).valueOf(),
+      ),
     )
   }
 
-  private getFlatDatas = () => {
-    return this.datas.flat()
+  private getDatas = () => {
+    return this.cache.get('sortDatas')
   }
 
   public callbacks = () => {
@@ -209,14 +189,14 @@ export class ScanStore {
       getByPage: this.getByPage,
       isExists: this.isExists,
       deleteByQrcode: this.deleteByQrcode,
-      getFlatDatas: this.getFlatDatas,
+      getDatas: this.getDatas,
     }
   }
 
   private reset = () => {
     this.datas = []
     this.hourCapacityMap.clear()
-    this.totalCapacity = 0
+    this.cache.clear()
     this.notify()
   }
 }

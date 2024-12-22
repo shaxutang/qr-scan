@@ -10,7 +10,7 @@ import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
 import { Dayjs } from 'dayjs'
 import { throttle } from 'lodash'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
@@ -22,7 +22,7 @@ type Page = {
   total: number
 }
 
-const throttleSay = throttle(async (msg: string) => say(msg), 1000)
+const throttleSay = throttle(say, 1000)
 
 const Page: React.FC = () => {
   const scan = useScan()
@@ -32,15 +32,9 @@ const Page: React.FC = () => {
 
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorQrCode, setErrorQrCode] = useState('')
-  const [pageNumber, setPageNumber] = useState<number>(1)
 
   const timer = useRef<NodeJS.Timeout | null>(null)
   const clearTime = useRef<Dayjs>(dayjs())
-
-  const tableData = useMemo(
-    () => scan.getByPage(pageNumber),
-    [scan.totalCapacity],
-  )
 
   useEffect(() => {
     if (product?.productValue) {
@@ -94,7 +88,7 @@ const Page: React.FC = () => {
         })
       }
       scan.submit(data)
-      saveScanData(product.productValue, scan.getFlatDatas())
+      saveScanData(product.productValue, scan.getDatas())
     },
     [product, clearTime.current],
   )
@@ -106,7 +100,7 @@ const Page: React.FC = () => {
         : undefined
       scan.deleteByQrcode(qrcode)
       if (date) {
-        saveScanData(product.productValue, scan.getFlatDatas(), date)
+        saveScanData(product.productValue, scan.getDatas(), date)
       }
     },
     [product.productValue],

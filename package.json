@@ -1,7 +1,7 @@
 {
   "name": "qr-scan",
   "productName": "IE-扫码",
-  "version": "1.0.20241221",
+  "version": "1.0.20241222",
   "description": "IE Scan QR Code Application",
   "main": ".webpack/main",
   "scripts": {

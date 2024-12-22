@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="当前时间段产能"
+              title="最新时间段产能"
               value={scan.lastHourCapacity}
               precision={0}
               valueStyle={{ fontWeight: 400, fontSize: 36 }}
@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
           <Card>
             <Statistic
               title="小时产能同比增长"
-              value={scan.growth.toFixed(2)}
+              value={(scan.growth * 100).toFixed(2)}
               precision={2}
               valueStyle={valueStyle}
               prefix={icon}
