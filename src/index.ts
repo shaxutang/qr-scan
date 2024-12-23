@@ -5,11 +5,10 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
-  readFileSync,
-  renameSync,
   statSync,
   writeFileSync,
 } from 'node:fs'
+import { readFile, rename, writeFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import os from 'os'
 import { DataType } from './types'
@@ -141,7 +140,7 @@ ipcMain.handle('electron:save:file', async (event, filePath, data) => {
     if (!existsSync(fileDir)) {
       mkdirSync(fileDir, { recursive: true })
     }
-    writeFileSync(path, data)
+    writeFile(path, data)
     return true
   } catch (error) {
     throw new Error('文件保存失败: ' + error.message)
@@ -153,8 +152,11 @@ ipcMain.handle('electron:save:file', async (event, filePath, data) => {
  */
 ipcMain.handle('electron:read:file', async (event, filePath) => {
   const path = join(BASE_DIR, filePath)
+  if (!existsSync(path)) {
+    return null
+  }
   try {
-    return readFileSync(path, 'utf-8')
+    return readFile(path, 'utf-8')
   } catch (error) {
     return null
   }
@@ -193,7 +195,7 @@ ipcMain.handle('electron:export:scan:excel', async (event, data, filePath) => {
       mkdirSync(dir, { recursive: true })
     }
     const buffer = await workbook.xlsx.writeBuffer()
-    writeFileSync(path, new Uint8Array(buffer))
+    writeFile(path, new Uint8Array(buffer))
     return { success: true, message: '导出成功', path }
   } catch (error) {
     console.error('Error exporting to Excel:', error)
@@ -254,7 +256,7 @@ ipcMain.handle(
       }
 
       // 重命名文件夹
-      renameSync(baseOldPath, baseNewPath)
+      rename(baseOldPath, baseNewPath)
 
       return { success: true, message: '文件夹重命名成功' }
     } catch (error) {
