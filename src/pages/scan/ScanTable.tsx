@@ -41,10 +41,12 @@ const ScanTable: React.FC<{}> = () => {
 
   const onSearch = (qrcode: string) => {
     setInput(qrcode)
+    setPageNum(1)
   }
 
   const onReset = () => {
     setInput('')
+    setPageNum(1)
   }
 
   return (
@@ -53,10 +55,12 @@ const ScanTable: React.FC<{}> = () => {
         <SearchForm value={input} onSubmit={onSearch} onReset={onReset} />
       </div>
       <Table<DataType>
+        tableLayout="fixed"
         columns={columns}
         dataSource={filterDataSource}
         rowKey="qrcode"
         scroll={{ y: 500 }}
+        virtual={true}
         pagination={{
           current: pageNum,
           total: scan.totalCapacity,

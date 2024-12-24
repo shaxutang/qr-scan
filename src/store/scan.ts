@@ -46,6 +46,10 @@ export class ScanStore {
   private datas: DataType[] = []
   private hourCapacityMap: Map<number, number> = new Map()
   private listeners: Set<() => void> = new Set()
+  private cache = new Map()
+  private batchSaveTimer: NodeJS.Timeout | null = null
+  private pendingSaves: DataType[] = []
+  private saveFunction: () => void
   private snapshot: Snapshot = {
     speed: 0,
     lastHourCapacity: 0,
@@ -53,7 +57,6 @@ export class ScanStore {
     growth: 0,
     charData: [],
   }
-  private cache = new Map()
 
   public subscribe = (listener: () => void) => {
     this.listeners.add(listener)
@@ -64,7 +67,7 @@ export class ScanStore {
 
   private notify = () => {
     this.buildSnapshot()
-    this.cacheSortDats()
+    this.cacheSortDatas()
     this.listeners.forEach((listener) => listener())
   }
 
@@ -74,10 +77,22 @@ export class ScanStore {
     this.notify()
   }
 
+  private setSaveFunction = (saveFunction: () => void) => {
+    this.saveFunction = saveFunction
+  }
+
   private submit = (data: DataType) => {
     this.datas.push(data)
     const hour = dayjs(data.date).hour()
     this.hourCapacityMap.set(hour, (this.hourCapacityMap.get(hour) ?? 0) + 1)
+    this.pendingSaves.push(data)
+
+    if (this.batchSaveTimer) {
+      clearTimeout(this.batchSaveTimer)
+    }
+
+    this.batchSaveTimer = setTimeout(this.saveFunction, 1000)
+
     this.notify()
   }
 
@@ -149,9 +164,12 @@ export class ScanStore {
   }
 
   private getByPage = (page: number, qrcode?: string) => {
-    return ((this.cache.get('sortDatas') ?? []) as DataType[])
+    if (!this.cache.has('sortDatas')) {
+      this.cacheSortDatas()
+    }
+    return (this.cache.get('sortDatas') as DataType[])
       .filter((data) =>
-        qrcode ? data.qrcode.lastIndexOf(qrcode) !== -1 : true,
+        qrcode ? data.qrcode.lastIndexOf(qrcode.trim()) !== -1 : true,
       )
       .slice((page - 1) * MAX_CAPACITY, page * MAX_CAPACITY)
   }
@@ -164,7 +182,7 @@ export class ScanStore {
     return this.datas.some((item) => item.qrcode === qrcode)
   }
 
-  private cacheSortDats = () => {
+  private cacheSortDatas = () => {
     this.cache.set(
       'sortDatas',
       this.datas.sort(
@@ -185,6 +203,7 @@ export class ScanStore {
       getByPage: this.getByPage,
       isExists: this.isExists,
       getDatas: this.getDatas,
+      setSaveFunction: this.setSaveFunction,
     }
   }
 
