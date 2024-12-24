@@ -61,7 +61,7 @@ const Page: React.FC = () => {
     setProducts(savedProducts)
     setNewProductName('')
     saveProducts(savedProducts)
-    saveScanData(product.productValue, [])
+    saveScanData(product.productValue, [], dayjs().format('YYYY-MM-DD'))
   }
 
   const onFinish = ({

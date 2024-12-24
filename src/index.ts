@@ -8,7 +8,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { readFile, rename, writeFile } from 'node:fs/promises'
+import { readFile as fsReadFile, rename, writeFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import os from 'os'
 import { DataType } from './types'
@@ -130,11 +130,7 @@ app.whenReady().then(() => {
   })
 })
 
-/**
- * 保存文件
- */
-ipcMain.handle('electron:save:file', async (event, filePath, data) => {
-  const path = join(BASE_DIR, filePath)
+const saveFile = async (path: string, data: string) => {
   try {
     const fileDir = dirname(path)
     if (!existsSync(fileDir)) {
@@ -143,65 +139,127 @@ ipcMain.handle('electron:save:file', async (event, filePath, data) => {
     writeFile(path, data)
     return true
   } catch (error) {
-    throw new Error('文件保存失败: ' + error.message)
+    console.error('Error saving file:', error)
+    return false
+  }
+}
+
+const readFile = async (path: string) => {
+  try {
+    if (!existsSync(path)) {
+      return null
+    }
+    return fsReadFile(path, 'utf-8')
+  } catch (error) {
+    console.error('Error reading file:', error)
+    return null
+  }
+}
+
+ipcMain.handle('electron:save:products', async (event, data) => {
+  const path = join(BASE_DIR, `wk/qr-scan/product`, 'products.json')
+  return saveFile(path, JSON.stringify(data))
+})
+
+ipcMain.handle('electron:read:products', async () => {
+  const path = join(BASE_DIR, `wk/qr-scan/product`, 'products.json')
+  try {
+    return JSON.parse(await readFile(path))
+  } catch {
+    return []
   }
 })
 
-/**
- * 读取文件
- */
-ipcMain.handle('electron:read:file', async (event, filePath) => {
-  const path = join(BASE_DIR, filePath)
-  if (!existsSync(path)) {
-    return null
-  }
+ipcMain.handle('electron:save:rules', async (event, data) => {
+  const path = join(BASE_DIR, `wk/qr-scan/product`, 'rules.json')
+  return saveFile(path, JSON.stringify(data))
+})
+
+ipcMain.handle('electron:read:rules', async () => {
+  const path = join(BASE_DIR, `wk/qr-scan/product`, 'rules.json')
   try {
-    return readFile(path, 'utf-8')
-  } catch (error) {
-    return null
+    return JSON.parse(await readFile(path))
+  } catch {
+    return []
   }
 })
+
+ipcMain.handle(
+  'electron:save:scans',
+  async (event, productValue: string, date: string, data: DataType[]) => {
+    const path = join(
+      BASE_DIR,
+      `wk/qr-scan/product`,
+      productValue,
+      date,
+      'data.json',
+    )
+    return saveFile(path, JSON.stringify(data))
+  },
+)
+
+ipcMain.handle(
+  'electron:read:scans',
+  async (event, productValue: string, date: string) => {
+    const path = join(
+      BASE_DIR,
+      `wk/qr-scan/product`,
+      productValue,
+      date,
+      'data.json',
+    )
+    const scans = await readFile(path)
+    return scans ? JSON.parse(scans) : []
+  },
+)
 
 /**
  * 导出到excel
  */
-ipcMain.handle('electron:export:scan:excel', async (event, data, filePath) => {
-  const path = join(BASE_DIR, filePath)
-  try {
-    const workbook = new Workbook()
-    const worksheet = workbook.addWorksheet('导出数据')
-    const products = data as DataType[]
+ipcMain.handle(
+  'electron:export:scan:excel',
+  async (event, data, name: string, date: string) => {
+    const path = join(BASE_DIR, `wk/qr-scan/downloads`, name, `${date}.xlsx`)
+    try {
+      const workbook = new Workbook()
+      const worksheet = workbook.addWorksheet('导出数据')
+      const products = data as DataType[]
 
-    worksheet.columns = [
-      { header: '扫码对象名称', key: 'productName', width: 20 },
-      { header: '扫码对象条码', key: 'qrcode', width: 30 },
-      { header: '测试状态', key: 'state', width: 20 },
-      { header: '扫码时间', key: 'date', width: 20 },
-    ]
+      worksheet.columns = [
+        { header: '扫码对象名称', key: 'productName', width: 20 },
+        { header: '扫码对象条码', key: 'qrcode', width: 30 },
+        { header: '测试状态', key: 'state', width: 20 },
+        { header: '扫码时间', key: 'date', width: 20 },
+      ]
 
-    products
-      .map((product) => ({
-        productName: product.productName,
-        qrcode: product.qrcode,
-        state: '测试通过',
-        date: dayjs(product.date).format('YYYY/MM/DD HH:mm:ss'),
-      }))
-      .forEach((item) => {
-        worksheet.addRow(item)
-      })
+      products
+        .map((product) => ({
+          productName: product.productName,
+          qrcode: product.qrcode,
+          state: '测试通过',
+          date: dayjs(product.date).format('YYYY/MM/DD HH:mm:ss'),
+        }))
+        .forEach((item) => {
+          worksheet.addRow(item)
+        })
 
-    const dir = dirname(path)
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true })
+      const dir = dirname(path)
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true })
+      }
+      const buffer = await workbook.xlsx.writeBuffer()
+      writeFile(path, new Uint8Array(buffer))
+      return { success: true, message: '导出成功', path }
+    } catch (error) {
+      console.error('Error exporting to Excel:', error)
+      return {
+        success: false,
+        message: 'Error exporting to Excel.',
+        path: null,
+      }
     }
-    const buffer = await workbook.xlsx.writeBuffer()
-    writeFile(path, new Uint8Array(buffer))
-    return { success: true, message: '导出成功', path }
-  } catch (error) {
-    console.error('Error exporting to Excel:', error)
-    return { success: false, message: 'Error exporting to Excel.', path: null }
-  }
-})
+  },
+)
 
 /**
  * 获取 wk/qr-scan/product/xx/xx/data.json的列表

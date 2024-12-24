@@ -1,6 +1,6 @@
 import { useScan } from '@/store/scan'
 import type { TableProps } from 'antd'
-import { Button, Card, Popconfirm, Switch, Table, Tag } from 'antd'
+import { Card, Table, Tag } from 'antd'
 import React, { useState } from 'react'
 import { DataType } from '../../types'
 import dayjs from '../../utils/dayjs'
@@ -32,40 +32,13 @@ const columns: TableProps<DataType>['columns'] = [
   },
 ]
 
-const ScanTable: React.FC<{
-  onDelete?: (qrcode: string) => void
-}> = ({ onDelete }) => {
+const ScanTable: React.FC<{}> = () => {
   const scan = useScan()
   const [input, setInput] = useState('')
-  const [advanced, setAdvanced] = useState(false)
   const [pageNum, setPageNum] = useState(1)
 
   const filterDataSource = scan.getByPage(pageNum, input)
 
-  const getColumns = () => {
-    return advanced
-      ? [
-          ...columns,
-          {
-            title: '操作',
-            key: 'action',
-            render: (_: any, record: DataType) => (
-              <>
-                <Popconfirm
-                  title="确定要删除吗？"
-                  description="删除之后不可恢复！"
-                  onConfirm={() => onDelete?.(record.qrcode)}
-                >
-                  <Button type="primary" size="small" danger>
-                    删除
-                  </Button>
-                </Popconfirm>
-              </>
-            ),
-          },
-        ]
-      : columns
-  }
   const onSearch = (qrcode: string) => {
     setInput(qrcode)
   }
@@ -76,15 +49,11 @@ const ScanTable: React.FC<{
 
   return (
     <Card>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4">
         <SearchForm value={input} onSubmit={onSearch} onReset={onReset} />
-        <div className="flex items-center gap-x-2">
-          <div>高级操作:</div>
-          <Switch value={advanced} onChange={setAdvanced} />
-        </div>
       </div>
       <Table<DataType>
-        columns={getColumns()}
+        columns={columns}
         dataSource={filterDataSource}
         rowKey="qrcode"
         scroll={{ y: 500 }}

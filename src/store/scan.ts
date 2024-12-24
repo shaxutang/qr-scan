@@ -81,12 +81,6 @@ export class ScanStore {
     this.notify()
   }
 
-  private deleteByQrcode = (qrcode: string) => {
-    this.datas = this.datas.filter((item) => item.qrcode !== qrcode)
-    buildHourCapacityMap(this.datas, this.hourCapacityMap)
-    this.notify()
-  }
-
   public buildSnapshot = () => {
     const speed = this.speed()
     const lastHourCapacity = this.getLastHourCapacity()
@@ -126,7 +120,9 @@ export class ScanStore {
   }
 
   private getGrowth = () => {
-    const hours = Array.from(this.hourCapacityMap.keys()).sort().reverse()
+    const hours = Array.from(this.hourCapacityMap.keys()).sort(
+      (k1, k2) => k2 - k1,
+    )
     const currentHour = hours[0]
     const previousHour = hours[1]
 
@@ -188,7 +184,6 @@ export class ScanStore {
       setDataByFull: this.setDataByFull,
       getByPage: this.getByPage,
       isExists: this.isExists,
-      deleteByQrcode: this.deleteByQrcode,
       getDatas: this.getDatas,
     }
   }

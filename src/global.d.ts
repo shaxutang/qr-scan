@@ -3,11 +3,20 @@ import { DataType } from './types'
 declare global {
   interface Window extends Window {
     electron: {
-      saveFile: (filePath: string, data: string) => void
-      readFile: (filePath: string) => Promise<string>
+      saveProducts: <T>(data: T) => Promise<boolean>
+      readProducts: <T>() => Promise<T>
+      saveRules: <T>(data: T) => Promise<boolean>
+      readRules: <T>() => Promise<T>
+      saveScans: (
+        productName: string,
+        date: string,
+        data: DataType[],
+      ) => Promise<boolean>
+      readScans: (productValue: string, date: string) => Promise<DataType[]>
       exportScanDataExcel: (
         data: DataType[],
-        filePath: string,
+        name: string,
+        date: string,
       ) => Promise<{ success: boolean; message: string; path: string }>
       getExoportList: (productValue: string) => Promise<
         {

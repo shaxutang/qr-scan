@@ -18,7 +18,7 @@ import {
   Space,
 } from 'antd'
 import { Dayjs } from 'dayjs'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useProduct } from '../../store/product'
 
 const HistoryDawerButton: React.FC = () => {
@@ -30,37 +30,40 @@ const HistoryDawerButton: React.FC = () => {
     }[]
   >([])
   const [open, setOpen] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(true)
   const [messageApi, holder] = message.useMessage()
   const { product, setProduct } = useProduct()
   const [selectedDays, setSelectedDays] = useState<Dayjs[]>([])
   const [selectAll, setSelectAll] = useState(false)
-
+  const [isBatchPending, startBatchTransition] = useTransition()
+  const [isLoadDataPending, startLoadDataTransition] = useTransition()
   const onClick = async () => {
     setOpen(true)
-    setLoading(true)
-    const list = await getExoportList(product.productValue)
-    let finalList = list
-      .map((item) => {
-        const dateStr = item.path.replace(/^.*[\\/]/, '')
-        return {
-          ...item,
-          date: dayjs(dateStr),
+    startLoadDataTransition(() => {
+      getExoportList(product.productValue).then((list) => {
+        let finalList = list
+          .map((item) => {
+            const dateStr = item.path.replace(/^.*[\\/]/, '')
+            return {
+              ...item,
+              date: dayjs(dateStr),
+            }
+          })
+          .filter((item) => item.date.isValid())
+
+        const hasNow = finalList.some((item) => item.date.isSame(dayjs(), 'D'))
+
+        if (!hasNow) {
+          finalList.push({
+            name: dayjs().format('YYYY-MM-DD'),
+            date: dayjs(),
+            path: '',
+          })
         }
-      })
-      .filter((item) => item.date.isValid())
 
-    const hasNow = finalList.some((item) => item.date.isSame(dayjs(), 'D'))
-
-    if (!hasNow) {
-      finalList.push({
-        name: dayjs().format('YYYY-MM-DD'),
-        date: dayjs(),
-        path: '',
+        finalList.sort((a, b) => b.date.valueOf() - a.date.valueOf())
+        setExportList(finalList)
       })
-    }
-    setExportList(finalList)
-    setLoading(false)
+    })
   }
 
   const onExport = async (date: Dayjs, isLast: boolean = true) => {
@@ -81,9 +84,11 @@ const HistoryDawerButton: React.FC = () => {
   }
 
   const onBatchExport = async () => {
-    selectedDays.forEach(async (day, index) =>
-      onExport(day, index === selectedDays.length - 1),
-    )
+    startBatchTransition(() => {
+      selectedDays.forEach(async (day, index) =>
+        onExport(day, index === selectedDays.length - 1),
+      )
+    })
   }
 
   const onView = (scanDate: Dayjs) => {
@@ -123,7 +128,7 @@ const HistoryDawerButton: React.FC = () => {
         title="历史记录"
         placement="right"
         open={open}
-        loading={loading}
+        loading={isLoadDataPending}
         width={560}
         extra={
           <Button type="primary" onClick={onExportDatasource}>
@@ -143,6 +148,7 @@ const HistoryDawerButton: React.FC = () => {
           <Space size="middle" className="ml-auto">
             <div>已选择「{selectedDays.length}」项</div>
             <Button
+              loading={isBatchPending}
               icon={<ExportOutlined />}
               disabled={!selectedDays.length}
               onClick={onBatchExport}

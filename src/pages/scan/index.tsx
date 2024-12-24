@@ -37,12 +37,10 @@ const Page: React.FC = () => {
   const clearTime = useRef<Dayjs>(dayjs())
 
   useEffect(() => {
-    if (product?.productValue) {
+    if (product?.productValue && product?.scanDate) {
       readScanData(
         product.productValue,
-        product?.scanDate
-          ? dayjs(product.scanDate).format('YYYY-MM-DD')
-          : undefined,
+        dayjs(product.scanDate).format('YYYY-MM-DD'),
       ).then((data) => {
         scan.setDataByFull(data)
       })
@@ -88,22 +86,13 @@ const Page: React.FC = () => {
         })
       }
       scan.submit(data)
-      saveScanData(product.productValue, scan.getDatas())
+      saveScanData(
+        product.productValue,
+        scan.getDatas(),
+        dayjs(product.scanDate).format('YYYY-MM-DD'),
+      )
     },
     [product, clearTime.current],
-  )
-
-  const handleDelete = useCallback(
-    async (qrcode: string) => {
-      const date = product.scanDate
-        ? dayjs(product.scanDate).format('YYYY-MM-DD')
-        : undefined
-      scan.deleteByQrcode(qrcode)
-      if (date) {
-        saveScanData(product.productValue, scan.getDatas(), date)
-      }
-    },
-    [product.productValue],
   )
 
   return (
@@ -151,7 +140,7 @@ const Page: React.FC = () => {
         <Dashboard />
       </div>
       <div className="w-full flex-auto">
-        <ScanTable onDelete={handleDelete} />
+        <ScanTable />
       </div>
       <Modal
         title="错误提示"

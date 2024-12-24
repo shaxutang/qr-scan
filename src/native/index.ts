@@ -1,50 +1,29 @@
 import { DataType, Product, Rule } from '../types'
-import dayjs from '../utils/dayjs'
 
 export const saveProducts = async (products: Product[]) => {
-  window.electron.saveFile(
-    'wk/qr-scan/product/products.json',
-    JSON.stringify(products),
-  )
+  return window.electron.saveProducts(products)
 }
 export const readProducts = async (): Promise<Product[]> => {
-  const content = await window.electron.readFile(
-    'wk/qr-scan/product/products.json',
-  )
-  return content ? JSON.parse(content) : []
+  return window.electron.readProducts()
 }
 
-export const saveRules = async (products: Rule[]) => {
-  window.electron.saveFile(
-    'wk/qr-scan/product/rules.json',
-    JSON.stringify(products),
-  )
+export const saveRules = async (rules: Rule[]) => {
+  return window.electron.saveRules(rules)
 }
 export const readRules = async (): Promise<Rule[]> => {
-  const content = await window.electron.readFile(
-    'wk/qr-scan/product/rules.json',
-  )
-  return content ? JSON.parse(content) : []
+  return window.electron.readRules()
 }
 
 export const saveScanData = async (
-  productName: string,
+  productValue: string,
   data: DataType[],
   date?: string,
 ) => {
-  window.electron.saveFile(
-    `wk/qr-scan/product/${productName}/${date ?? dayjs().format('YYYY-MM-DD')}/data.json`,
-    JSON.stringify(data),
-  )
+  return window.electron.saveScans(productValue, date, data)
 }
 
-export const readScanData = async (productValue: string, date?: string) => {
-  const content = await window.electron.readFile(
-    `wk/qr-scan/product/${productValue}/${
-      date ?? dayjs().format('YYYY-MM-DD')
-    }/data.json`,
-  )
-  return content ? JSON.parse(content) : []
+export const readScanData = async (productValue: string, date: string) => {
+  return window.electron.readScans(productValue, date)
 }
 
 export const exportScanDataExcel = (
@@ -52,10 +31,7 @@ export const exportScanDataExcel = (
   date: string,
   data: DataType[],
 ) => {
-  return window.electron.exportScanDataExcel(
-    data,
-    `wk/qr-scan/downloads/${name}/${date}.xlsx`,
-  )
+  return window.electron.exportScanDataExcel(data, name, date)
 }
 
 export const getExoportList = async (productValue: string) => {
