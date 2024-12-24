@@ -8,9 +8,8 @@ import dayjs from '@/utils/dayjs'
 import { say } from '@/utils/video'
 import { LeftOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { Button, Modal, notification, Result } from 'antd'
-import { Dayjs } from 'dayjs'
 import { throttle } from 'lodash'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import ExtraAction from './ExtraAction'
@@ -24,6 +23,25 @@ type Page = {
 
 const throttleSay = throttle(say, 1000)
 
+function generateData(count: number): DataType[] {
+  const data: DataType[] = []
+
+  for (let i = 0; i < count; i++) {
+    const prefix = String(Math.floor(1000000 + Math.random() * 9000000)) // 7位数字
+    const suffix = String(Math.floor(1000000000 + Math.random() * 9000000000)) // 10位数字
+    const qrcode = `${prefix}W${suffix}`
+
+    data.push({
+      productName: `Product ${i + 1}`,
+      productValue: `qì_yā_fá`,
+      qrcode,
+      date: Date.now(),
+    })
+  }
+
+  return data
+}
+
 const Page: React.FC = () => {
   const scan = useScan()
   const { product, setProduct } = useProduct()
@@ -34,7 +52,15 @@ const Page: React.FC = () => {
   const [errorQrCode, setErrorQrCode] = useState('')
 
   const timer = useRef<NodeJS.Timeout | null>(null)
-  const clearTime = useRef<Dayjs>(dayjs())
+
+  // useEffect(() => {
+  //   const index = setInterval(() => {
+  //     generateData(1).forEach(onSubmit)
+  //   }, 1000)
+  //   return () => {
+  //     clearInterval(index)
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (product?.productValue && product?.scanDate) {
@@ -47,53 +73,50 @@ const Page: React.FC = () => {
     }
   }, [product?.scanDate, product?.productValue])
 
-  const onSubmit = useCallback(
-    async (data: DataType) => {
-      if (product.scanRule) {
-        const regexp = new RegExp(product.scanRule)
+  const onSubmit = async (data: DataType) => {
+    if (product.scanRule) {
+      const regexp = new RegExp(product.scanRule)
 
-        showErrorModal && setShowErrorModal(false)
+      showErrorModal && setShowErrorModal(false)
 
-        if (!regexp.test(data.qrcode)) {
-          throttleSay(
-            '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
-          )
-          setErrorQrCode(data.qrcode)
-          setShowErrorModal(true)
-          clearTimeout(timer.current)
-          timer.current = setTimeout(() => {
-            setShowErrorModal(false)
-          }, 10000)
-          return
-        }
-      }
-
-      if (scan.isExists(data.qrcode)) {
-        notificationApi.info({
-          key: 'duplicate',
-          message: '友情提示',
-          description: '当前扫描的条码重复!',
-          placement: 'top',
-        })
+      if (!regexp.test(data.qrcode)) {
+        throttleSay(
+          '扫码异常，请确认输入法是否是英文或当前扫描条码格式是否有误',
+        )
+        setErrorQrCode(data.qrcode)
+        setShowErrorModal(true)
+        clearTimeout(timer.current)
+        timer.current = setTimeout(() => {
+          setShowErrorModal(false)
+        }, 10000)
         return
       }
+    }
 
-      if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
-        scan.reset()
-        setProduct({
-          ...product,
-          scanDate: dayjs().toDate().getTime(),
-        })
-      }
-      scan.submit(data)
-      saveScanData(
-        product.productValue,
-        scan.getDatas(),
-        dayjs(product.scanDate).format('YYYY-MM-DD'),
-      )
-    },
-    [product, clearTime.current],
-  )
+    if (scan.isExists(data.qrcode)) {
+      notificationApi.info({
+        key: 'duplicate',
+        message: '友情提示',
+        description: '当前扫描的条码重复!',
+        placement: 'top',
+      })
+      return
+    }
+
+    if (dayjs().isAfter(dayjs(product.scanDate), 'D')) {
+      scan.reset()
+      setProduct({
+        ...product,
+        scanDate: dayjs().toDate().getTime(),
+      })
+    }
+    scan.submit(data)
+    saveScanData(
+      product.productValue,
+      scan.getDatas(),
+      dayjs(product.scanDate).format('YYYY-MM-DD'),
+    )
+  }
 
   return (
     <section className="min-h-screen px-8 pt-6">
